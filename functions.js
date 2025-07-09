@@ -296,33 +296,41 @@ async function initializeSystem() {
  * und dem Nutzer eine verständliche Fehlermeldung anzuzeigen.
  */
 document.addEventListener('DOMContentLoaded', async function() {
-    // REPARIERT: Alle Zuweisungen von DOM-Elementen und Event-Listenern,
-    // die von ihnen abhängen, sind jetzt sicher hier drin.
+    // REPARIERT: Alle Zuweisungen von DOM-Elementen und Event-Listenern sind jetzt sicher hier drin.
+    // Zuerst werden die globalen Variablen, die für die UI wichtig sind, zugewiesen.
     voiceInterruptBtn = document.getElementById('voice-interrupt-button');
     voiceOverlay = document.getElementById('voice-overlay');
     voiceStatus = document.getElementById('voice-status');
     voiceTranscript = document.getElementById('voice-transcript');
     voiceChatBtn = document.getElementById('voice-chat-btn');
     textarea = document.getElementById('message-input');
-    
-    // Event-Listener, die vorher im globalen Scope waren
-    textarea.addEventListener('input', adjustTextareaHeight);
-    document.getElementById('new-interest').addEventListener('keypress', function(e) { if (e.key === 'Enter') addInterest(); });
+    const newInterestInput = document.getElementById('new-interest');
+    const projectFileInput = document.getElementById('project-file-input');
 
+    // Dann werden Event-Listener nur hinzugefügt, wenn die Elemente auch wirklich existieren.
+    if (textarea) {
+        textarea.addEventListener('input', adjustTextareaHeight);
+    }
+    if (newInterestInput) {
+        newInterestInput.addEventListener('keypress', function(e) { if (e.key === 'Enter') addInterest(); });
+    }
+    if (projectFileInput) {
+        projectFileInput.addEventListener('change', handleProjectFileSelect);
+    }
+    
     try {
         await initializeSystem();
         
-        document.getElementById('project-file-input').addEventListener('change', handleProjectFileSelect);
-
         if (window.innerWidth <= 768) {
             const container = document.querySelector('.main-container');
-            if (!container.classList.contains('sidebar-collapsed')) {
+            if (container && !container.classList.contains('sidebar-collapsed')) {
                 toggleSidebar();
             }
         }
     } catch (error) {
         console.error("Initialization failed:", error);
-        showNotification("Anwendung konnte nicht initialisiert werden. Bitte neu laden. Fehler: " + error.message, 'error');
+        const errorMessage = error.message || "Unbekannter Initialisierungsfehler.";
+        showNotification("Anwendung konnte nicht initialisiert werden. Bitte neu laden. Fehler: " + errorMessage, 'error');
     }
 });
 
@@ -370,27 +378,33 @@ async function loadUISettings() {
     const accentColorSetting = await dbHelper.get(dbHelper.STORES.APP_STATE, SETTING_KEYS.ACCENT_COLOR);
     const savedAccentColor = accentColorSetting ? accentColorSetting.value : 'green';
     changeAccentColor(savedAccentColor, false);
-    document.getElementById('accent-color-select').value = savedAccentColor;
+    const accentSelect = document.getElementById('accent-color-select');
+    if (accentSelect) accentSelect.value = savedAccentColor;
 
     const themeSetting = await dbHelper.get(dbHelper.STORES.APP_STATE, SETTING_KEYS.THEME);
     const savedTheme = themeSetting ? themeSetting.value : 'light';
     document.documentElement.setAttribute('data-theme', savedTheme);
-    document.getElementById('theme-toggle').checked = savedTheme === 'dark';
+    const themeToggle = document.getElementById('theme-toggle');
+    if (themeToggle) themeToggle.checked = savedTheme === 'dark';
     
     const autoSearchSetting = await dbHelper.get(dbHelper.STORES.APP_STATE, SETTING_KEYS.AUTO_SEARCH);
     isAutoSearchEnabled = autoSearchSetting ? autoSearchSetting.value : true;
-    document.getElementById('auto-search-toggle').checked = isAutoSearchEnabled;
+    const autoSearchToggle = document.getElementById('auto-search-toggle');
+    if (autoSearchToggle) autoSearchToggle.checked = isAutoSearchEnabled;
 
     const tempSetting = await dbHelper.get(dbHelper.STORES.APP_STATE, SETTING_KEYS.TEMPERATURE);
     temperature = tempSetting ? parseFloat(tempSetting.value) : 0.7;
-    document.getElementById('temperature-slider').value = temperature;
-    document.getElementById('temperature-value').textContent = temperature;
+    const tempSlider = document.getElementById('temperature-slider');
+    if (tempSlider) tempSlider.value = temperature;
+    const tempValue = document.getElementById('temperature-value');
+    if (tempValue) tempValue.textContent = temperature;
 
     const topPSetting = await dbHelper.get(dbHelper.STORES.APP_STATE, SETTING_KEYS.TOP_P);
     topP = topPSetting ? parseFloat(topPSetting.value) : 0.95;
-    document.getElementById('top-p-slider').value = topP;
-    document.getElementById('top-p-value').textContent = topP;
-
+    const topPSlider = document.getElementById('top-p-slider');
+    if (topPSlider) topPSlider.value = topP;
+    const topPValue = document.getElementById('top-p-value');
+    if (topPValue) topPValue.textContent = topP;
 }
 
 /**
@@ -443,6 +457,11 @@ function initializeSpeechAPI() {
 function loadAndCacheVoices() {
     return new Promise((resolve) => {
         const voiceSelect = document.getElementById('voice-select');
+        // REPARIERT: Wenn das Element nicht existiert, brechen wir ab, um Fehler zu vermeiden.
+        if (!voiceSelect) {
+            console.error("Element 'voice-select' nicht gefunden. Sprachauswahl nicht möglich.");
+            return resolve();
+        }
         let attempts = 0;
         
         const findAndSetVoices = () => {
@@ -506,6 +525,7 @@ function loadAndCacheVoices() {
  * die Spracherkennung gestartet/gestoppt wird und der Zustand korrekt verwaltet wird.
  */
 function toggleVoiceMode() {
+    if (!voiceChatBtn || !voiceOverlay) return;
     isVoiceModeActive = !isVoiceModeActive;
 
     if (isVoiceModeActive) {
@@ -514,27 +534,29 @@ function toggleVoiceMode() {
         voiceChatHistory = [...chatHistory];
 
         const botSelect = document.getElementById('voice-bot-select');
-        botSelect.innerHTML = '';
-        const allBots = [
-            ...Object.entries(BOT_PERSONALITIES).map(([id, data]) => ({ ...data, id, isCustom: false })),
-            ...customBots.map(bot => ({ ...bot, isCustom: true }))
-        ];
-        allBots.forEach(bot => {
-            const displayText = bot.isCustom ? bot.displayText : `${bot.emoji} ${bot.name}`;
-            const option = document.createElement('option');
-            option.value = bot.id;
-            option.textContent = displayText;
-            botSelect.appendChild(option);
-        });
-        botSelect.value = currentBot;
+        if (botSelect) {
+            botSelect.innerHTML = '';
+            const allBots = [
+                ...Object.entries(BOT_PERSONALITIES).map(([id, data]) => ({ ...data, id, isCustom: false })),
+                ...customBots.map(bot => ({ ...bot, isCustom: true }))
+            ];
+            allBots.forEach(bot => {
+                const displayText = bot.isCustom ? bot.displayText : `${bot.emoji} ${bot.name}`;
+                const option = document.createElement('option');
+                option.value = bot.id;
+                option.textContent = displayText;
+                botSelect.appendChild(option);
+            });
+            botSelect.value = currentBot;
+        }
 
         startListening();
     } else {
         voiceChatBtn.classList.remove('active', 'listening');
         voiceChatBtn.innerHTML = '<i class="fas fa-microphone"></i>';
         voiceOverlay.classList.remove('active');
-        voiceStatus.textContent = 'Sprachmodus ist inaktiv.';
-        voiceTranscript.textContent = '';
+        if (voiceStatus) voiceStatus.textContent = 'Sprachmodus ist inaktiv.';
+        if (voiceTranscript) voiceTranscript.textContent = '';
         
         if (speechRecognition) speechRecognition.stop();
         window.speechSynthesis.cancel();
@@ -551,7 +573,8 @@ function toggleVoiceMode() {
 function handleVoiceBotChange(botId) {
     if (activeProjectId) {
         showNotification("Bot kann nicht geändert werden, während ein Projekt aktiv ist.", 'info');
-        document.getElementById('voice-bot-select').value = currentBot;
+        const voiceBotSelect = document.getElementById('voice-bot-select');
+        if (voiceBotSelect) voiceBotSelect.value = currentBot;
         return;
     }
 
@@ -574,14 +597,18 @@ function handleVoiceBotChange(botId) {
  * dass die Erkennung nicht gestartet wird, wenn sie bereits läuft oder der Bot gerade spricht.
  */
 function startListening() {
-    if (!isVoiceModeActive || isListening || isBotSpeaking) return;
+    if (!isVoiceModeActive || isListening || isBotSpeaking || !speechRecognition) return;
 
     isListening = true;
-    voiceChatBtn.classList.add('listening');
-    voiceChatBtn.innerHTML = '<i class="fas fa-microphone"></i>';
-    voiceStatus.textContent = 'Ich höre zu...';
-    voiceStatus.classList.add('listening');
-    voiceTranscript.textContent = '...';
+    if (voiceChatBtn) {
+        voiceChatBtn.classList.add('listening');
+        voiceChatBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+    }
+    if (voiceStatus) {
+        voiceStatus.textContent = 'Ich höre zu...';
+        voiceStatus.classList.add('listening');
+    }
+    if (voiceTranscript) voiceTranscript.textContent = '...';
 
     try {
         speechRecognition.start();
@@ -610,11 +637,13 @@ async function handleVoiceResult(event) {
         return;
     }
 
-    voiceStatus.textContent = "Verarbeite...";
-    voiceTranscript.textContent = ''; 
+    if (voiceStatus) voiceStatus.textContent = "Verarbeite...";
+    if (voiceTranscript) voiceTranscript.textContent = ''; 
     
-    voiceChatBtn.classList.remove('listening');
-    voiceChatBtn.innerHTML = '<div class="loading"></div>';
+    if (voiceChatBtn) {
+        voiceChatBtn.classList.remove('listening');
+        voiceChatBtn.innerHTML = '<div class="loading"></div>';
+    }
 
     addMessage(transcript, 'user');
     
@@ -664,11 +693,13 @@ function speakText(textToSpeak) {
     isBotSpeaking = true; 
     
     const botName = allBotPersonalities[currentBot]?.name || 'Bot';
-    voiceInterruptBtn.innerHTML = `<i class="fas fa-hand-paper"></i> ${botName} unterbrechen`;
-    voiceInterruptBtn.style.display = 'flex';
+    if(voiceInterruptBtn) {
+        voiceInterruptBtn.innerHTML = `<i class="fas fa-hand-paper"></i> ${botName} unterbrechen`;
+        voiceInterruptBtn.style.display = 'flex';
+    }
 
-    voiceStatus.textContent = 'BredAI antwortet:';
-    voiceTranscript.textContent = `"${cleanedText}"`;
+    if (voiceStatus) voiceStatus.textContent = 'BredAI antwortet:';
+    if (voiceTranscript) voiceTranscript.textContent = `"${cleanedText}"`;
 
     const utterance = new SpeechSynthesisUtterance(cleanedText);
     utterance.lang = 'de-DE';
@@ -682,7 +713,7 @@ function speakText(textToSpeak) {
 
     const cleanupAndRestart = () => {
         isBotSpeaking = false;
-        voiceInterruptBtn.style.display = 'none';
+        if (voiceInterruptBtn) voiceInterruptBtn.style.display = 'none';
         if (isVoiceModeActive) {
             startListening(); 
         }
@@ -714,14 +745,14 @@ function handleVoiceError(event) {
     }
     
     if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
-        voiceStatus.textContent = 'Mikrofon-Zugriff verweigert.';
-        voiceTranscript.textContent = 'Bitte erlaube den Zugriff in den Browser-Einstellungen.';
+        if (voiceStatus) voiceStatus.textContent = 'Mikrofon-Zugriff verweigert.';
+        if (voiceTranscript) voiceTranscript.textContent = 'Bitte erlaube den Zugriff in den Browser-Einstellungen.';
         setTimeout(() => { if(isVoiceModeActive) toggleVoiceMode(); }, 4000);
         return;
     }
 
-    voiceStatus.textContent = 'Ein Fehler ist aufgetreten.';
-    voiceTranscript.textContent = `Fehler: ${event.error}`;
+    if (voiceStatus) voiceStatus.textContent = 'Ein Fehler ist aufgetreten.';
+    if (voiceTranscript) voiceTranscript.textContent = `Fehler: ${event.error}`;
     
     setTimeout(() => {
         if (isVoiceModeActive) startListening();
@@ -735,17 +766,19 @@ function handleVoiceError(event) {
 async function loadVoiceSettings() {
     const rateSetting = await dbHelper.get(dbHelper.STORES.APP_STATE, SETTING_KEYS.VOICE_RATE);
     voiceRate = rateSetting ? parseFloat(rateSetting.value) : 1.1;
-    document.getElementById('voice-rate-slider').value = voiceRate;
+    const rateSlider = document.getElementById('voice-rate-slider');
+    if (rateSlider) rateSlider.value = voiceRate;
 
     const pitchSetting = await dbHelper.get(dbHelper.STORES.APP_STATE, SETTING_KEYS.VOICE_PITCH);
     voicePitch = pitchSetting ? parseFloat(pitchSetting.value) : 1.0;
-    document.getElementById('voice-pitch-slider').value = voicePitch;
+    const pitchSlider = document.getElementById('voice-pitch-slider');
+    if (pitchSlider) pitchSlider.value = voicePitch;
 
     const voiceNameSetting = await dbHelper.get(dbHelper.STORES.APP_STATE, SETTING_KEYS.VOICE_NAME);
     currentVoiceName = voiceNameSetting ? voiceNameSetting.value : null;
     
     const voiceSelect = document.getElementById('voice-select');
-    if (currentVoiceName && voiceSelect.options.length > 1) {
+    if (currentVoiceName && voiceSelect && voiceSelect.options.length > 1) {
         voiceSelect.value = currentVoiceName;
     }
 }
@@ -852,10 +885,14 @@ async function switchProfile(profileId) {
  * Öffnet das Modal zur Erstellung eines neuen Profils und leert die Eingabefelder.
  */
 function openCreateProfileModal() {
-    document.getElementById('profile-name').value = '';
-    document.getElementById('profile-age').value = '';
-    document.getElementById('profile-description').value = '';
-    document.getElementById('profile-modal').classList.add('active');
+    const profileName = document.getElementById('profile-name');
+    if (profileName) profileName.value = '';
+    const profileAge = document.getElementById('profile-age');
+    if (profileAge) profileAge.value = '';
+    const profileDescription = document.getElementById('profile-description');
+    if (profileDescription) profileDescription.value = '';
+    const profileModal = document.getElementById('profile-modal');
+    if (profileModal) profileModal.classList.add('active');
 }
 
 /**
@@ -866,23 +903,26 @@ function openCreateProfileModal() {
 async function saveProfile() {
     const saveButton = document.getElementById('save-profile-btn');
     const buttonText = document.getElementById('save-profile-btn-text');
-    const name = document.getElementById('profile-name').value.trim();
+    const nameInput = document.getElementById('profile-name');
+    const name = nameInput ? nameInput.value.trim() : '';
 
     if (!name) {
         showNotification('Bitte gib einen Namen für das Profil ein!', 'error');
         return;
     }
 
-    saveButton.disabled = true;
-    buttonText.textContent = 'Speichern...';
+    if (saveButton) saveButton.disabled = true;
+    if (buttonText) buttonText.textContent = 'Speichern...';
 
     try {
         const newId = 'profile_' + Date.now();
+        const ageInput = document.getElementById('profile-age');
+        const descriptionInput = document.getElementById('profile-description');
         const newProfile = {
             id: newId,
             name: name,
-            age: document.getElementById('profile-age').value,
-            description: document.getElementById('profile-description').value,
+            age: ageInput ? ageInput.value : '',
+            description: descriptionInput ? descriptionInput.value : '',
             customBots: [],
             interests: [],
             projects: [],
@@ -892,21 +932,23 @@ async function saveProfile() {
         profiles[newId] = newProfile;
         await dbHelper.save(dbHelper.STORES.PROFILES, newProfile);
 
-        document.getElementById('profile-modal').classList.remove('active');
-
-        if (document.getElementById('profile-modal').dataset.firstStart === "true") {
-            delete document.getElementById('profile-modal').dataset.firstStart; // Attribut entfernen
-            startTour();
+        const profileModal = document.getElementById('profile-modal');
+        if (profileModal) {
+            profileModal.classList.remove('active');
+            if (profileModal.dataset.firstStart === "true") {
+                delete profileModal.dataset.firstStart; // Attribut entfernen
+                startTour();
+            }
         }
-
+        
         await switchProfile(newId);
 
     } catch (error) {
         console.error("Fehler beim Speichern des Profils:", error);
         showNotification("Das Profil konnte nicht gespeichert werden. Bitte versuche es erneut.", 'error');
     } finally {
-        saveButton.disabled = false;
-        buttonText.textContent = 'Profil speichern';
+        if (saveButton) saveButton.disabled = false;
+        if (buttonText) buttonText.textContent = 'Profil speichern';
     }
 }
 
@@ -914,11 +956,14 @@ async function saveProfile() {
  * Diese Funktion schließt das Profil-Erstellungs-Modal, wenn der Nutzer auf "Ohne Profil fortfahren" klickt.
  */
 function skipProfileCreation() {
-    document.getElementById('profile-modal').classList.remove('active');
-    // NEU: Prüfen, ob die Tour gestartet werden soll
-    if (document.getElementById('profile-modal').dataset.firstStart === "true") {
-        delete document.getElementById('profile-modal').dataset.firstStart; // Attribut entfernen
-        startTour();
+    const profileModal = document.getElementById('profile-modal');
+    if (profileModal) {
+        profileModal.classList.remove('active');
+        // NEU: Prüfen, ob die Tour gestartet werden soll
+        if (profileModal.dataset.firstStart === "true") {
+            delete profileModal.dataset.firstStart; // Attribut entfernen
+            startTour();
+        }
     }
 }
     
@@ -966,11 +1011,13 @@ function loadChatSession(sessionId) {
     activeProjectId = session.activeProjectId || null; 
     
     const container = document.getElementById('chat-container');
-    container.innerHTML = ''; 
-    if (chatHistory.length === 0) {
-        addWelcomeMessage();
-    } else {
-        chatHistory.forEach(msg => addMessage(msg.message, msg.type, true));
+    if (container) {
+        container.innerHTML = ''; 
+        if (chatHistory.length === 0) {
+            addWelcomeMessage();
+        } else {
+            chatHistory.forEach(msg => addMessage(msg.message, msg.type, true));
+        }
     }
     
     document.querySelectorAll('.bot-item').forEach(item => item.classList.toggle('active', item.dataset.bot === currentBot));
@@ -1100,6 +1147,7 @@ async function saveCurrentProfileData() {
  */
 function renderProfileList() {
     const container = document.getElementById('profiles-container');
+    if (!container) return;
     container.innerHTML = '';
     Object.values(profiles).forEach(profile => {
         const item = document.createElement('div');
@@ -1155,7 +1203,6 @@ async function deleteProfile(profileIdToDelete) {
  * mit dem Inhalt wächst, was eine bessere User Experience bietet.
  */
 const adjustTextareaHeight = () => {
-    // REPARIERT: Diese Funktion wird jetzt erst aufgerufen, nachdem 'textarea' sicher zugewiesen wurde.
     if (!textarea) return;
     textarea.style.height = 'auto';
     textarea.style.height = `${textarea.scrollHeight}px`;
@@ -1173,6 +1220,7 @@ const adjustTextareaHeight = () => {
  */
 function renderChatHistoryList(scrollToBottom = false) {
     const container = document.getElementById('chat-history-container');
+    if (!container) return;
     container.innerHTML = '';
     const sessionsToShow = chatSessions.slice(0, historyDisplayCount);
 
@@ -1230,6 +1278,7 @@ function renderChatHistoryList(scrollToBottom = false) {
  */
 function renderBotList() {
     const container = document.getElementById('bot-list-container');
+    if (!container) return;
     container.innerHTML = ''; 
     const allBots = [
         ...Object.entries(BOT_PERSONALITIES).map(([id, data]) => ({ ...data, id, isCustom: false })),
@@ -1265,6 +1314,7 @@ function renderBotList() {
  */
 function renderProjectList() {
     const container = document.getElementById('project-list-container');
+    if (!container) return;
     container.innerHTML = '';
     projects.forEach(project => {
         const item = document.createElement('div');
@@ -1294,6 +1344,7 @@ function renderProjectList() {
  */
 function renderModelList() {
     const container = document.getElementById('model-list-container');
+    if (!container) return;
     container.innerHTML = ''; 
     for (const [key, model] of Object.entries(MODELS)) {
         if (!model.name) continue;
@@ -1312,6 +1363,7 @@ function renderModelList() {
  */
 function updateInterestsDisplay() {
     const container = document.getElementById('interests-container');
+    if (!container) return;
     container.innerHTML = '';
     userInterests.forEach(interest => {
         const tag = document.createElement('div');
@@ -1355,13 +1407,18 @@ function updateCurrentConfig() {
 function updateChatUI() {
     const uploadButton = document.getElementById('upload-button');
     const messageInput = document.getElementById('message-input');
+    if (!messageInput) return; // Guard clause
+
     const selectedModel = MODELS[currentModel];
     if (!selectedModel) {
         messageInput.placeholder = "Fehler: Modell nicht gefunden!";
         if (uploadButton) uploadButton.style.display = 'none';
         return;
     }
+
     const modelName = selectedModel.name || 'Unbekannt';
+    const uploadIcon = document.querySelector('#upload-button i');
+
     if (selectedModel.capabilities.includes('vision') && !activeProjectId) { 
         if (uploadButton) uploadButton.style.display = 'block';
         messageInput.placeholder = `Nachricht an ${modelName} ...`;
@@ -1370,8 +1427,9 @@ function updateChatUI() {
         messageInput.placeholder = `Nachricht an ${modelName}...`;
         if (uploadedFile) {
             uploadedFile = null;
-            document.getElementById('file-input').value = null;
-            document.querySelector('#upload-button i').style.color = '#aaa';
+            const fileInput = document.getElementById('file-input');
+            if (fileInput) fileInput.value = null;
+            if (uploadIcon) uploadIcon.style.color = '#aaa';
         }
     }
 }
@@ -1387,7 +1445,7 @@ function interruptAndRestartListening() {
     window.speechSynthesis.cancel();
     
     isBotSpeaking = false;
-    voiceInterruptBtn.style.display = 'none';
+    if (voiceInterruptBtn) voiceInterruptBtn.style.display = 'none';
     startListening();
 }
 
@@ -1453,6 +1511,7 @@ function selectProject(projectId) {
  */
 async function addInterest() {
     const input = document.getElementById('new-interest');
+    if (!input) return;
     const interest = input.value.trim();
     if (interest && !userInterests.includes(interest)) {
         userInterests.push(interest);
@@ -1475,50 +1534,63 @@ async function removeInterest(interestToRemove) {
  * Öffnet das Modal zur Erstellung eines eigenen Bots und befüllt das Modell-Auswahlmenü.
  */
 function openCreateBotModal() {
-    document.getElementById('custom-bot-name').value = '';
-    document.getElementById('custom-bot-display').value = '';
-    document.getElementById('custom-bot-prompt').value = '';
+    const botName = document.getElementById('custom-bot-name');
+    if(botName) botName.value = '';
+    const botDisplay = document.getElementById('custom-bot-display');
+    if(botDisplay) botDisplay.value = '';
+    const botPrompt = document.getElementById('custom-bot-prompt');
+    if(botPrompt) botPrompt.value = '';
+    
     const modelSelect = document.getElementById('custom-bot-model');
-    modelSelect.innerHTML = '';
-    for (const [key, model] of Object.entries(MODELS)) {
-        if (model.name) modelSelect.innerHTML += `<option value="${key}">${model.emoji} ${model.name}</option>`;
+    if(modelSelect){
+        modelSelect.innerHTML = '';
+        for (const [key, model] of Object.entries(MODELS)) {
+            if (model.name) modelSelect.innerHTML += `<option value="${key}">${model.emoji} ${model.name}</option>`;
+        }
     }
-    document.getElementById('create-bot-modal').classList.add('active');
+    
+    const modal = document.getElementById('create-bot-modal');
+    if(modal) modal.classList.add('active');
 }
 
 /**
  * Speichert einen neu erstellten, benutzerdefinierten Bot.
  */
-// ÄNDERE DIESE FUNKTION
 async function saveCustomBot() {
-    const name = document.getElementById('custom-bot-name').value.trim();
-    const displayText = document.getElementById('custom-bot-display').value.trim();
-    const prompt = document.getElementById('custom-bot-prompt').value.trim();
-    const modelId = document.getElementById('custom-bot-model').value;
-    // NEU: Werte aus den Modal-Reglern auslesen
-    const botTemperature = parseFloat(document.getElementById('custom-bot-temperature-slider').value);
-    const botTopP = parseFloat(document.getElementById('custom-bot-top-p-slider').value);
+    const nameInput = document.getElementById('custom-bot-name');
+    const displayInput = document.getElementById('custom-bot-display');
+    const promptInput = document.getElementById('custom-bot-prompt');
+    const modelSelect = document.getElementById('custom-bot-model');
+    const tempSlider = document.getElementById('custom-bot-temperature-slider');
+    const topPSlider = document.getElementById('custom-bot-top-p-slider');
+
+    const name = nameInput ? nameInput.value.trim() : '';
+    const displayText = displayInput ? displayInput.value.trim() : '';
+    const prompt = promptInput ? promptInput.value.trim() : '';
+    const modelId = modelSelect ? modelSelect.value : 'gemini';
+    const botTemperature = tempSlider ? parseFloat(tempSlider.value) : 0.7;
+    const botTopP = topPSlider ? parseFloat(topPSlider.value) : 0.95;
 
     if (!name || !displayText || !prompt) { 
         showNotification("Bitte fülle alle Felder aus.", 'error'); 
         return; 
     }
     
-    // NEU: Werte dem Bot-Objekt hinzufügen
     customBots.push({ 
         id: 'custom_' + Date.now(), 
         name, 
         displayText, 
         prompt, 
         modelId,
-        temperature: botTemperature, // Gespeichert
-        topP: botTopP              // Gespeichert
+        temperature: botTemperature,
+        topP: botTopP
     });
 
     updateAllBotPersonalities();
     await saveCurrentProfileData();
     renderBotList();
-    document.getElementById('create-bot-modal').classList.remove('active');
+    const modal = document.getElementById('create-bot-modal');
+    if (modal) modal.classList.remove('active');
 }
 
 /**
@@ -1539,23 +1611,32 @@ async function deleteCustomBot(botId) {
  */
 function openCreateProjectModal() {
     projectModalFiles = [];
-    document.getElementById('project-id-input').value = '';
-    document.getElementById('project-name-input').value = '';
-    document.getElementById('project-texts-input').value = '';
-    document.getElementById('project-file-input').value = null;
+    const idInput = document.getElementById('project-id-input');
+    if (idInput) idInput.value = '';
+    const nameInput = document.getElementById('project-name-input');
+    if (nameInput) nameInput.value = '';
+    const textsInput = document.getElementById('project-texts-input');
+    if (textsInput) textsInput.value = '';
+    const fileInput = document.getElementById('project-file-input');
+    if (fileInput) fileInput.value = null;
+    
     renderProjectModalFileList(); 
 
     const botSelect = document.getElementById('project-bot-select');
-    botSelect.innerHTML = '';
-    const allBots = [
-        ...Object.entries(BOT_PERSONALITIES).map(([id, data]) => ({ ...data, id, isCustom: false })),
-        ...customBots.map(bot => ({ ...bot, isCustom: true }))
-    ];
-    allBots.forEach(bot => {
-        const displayText = bot.isCustom ? bot.displayText : `${bot.emoji} ${bot.name}`;
-        botSelect.innerHTML += `<option value="${bot.id}">${displayText}</option>`;
-    });
-    document.getElementById('create-project-modal').classList.add('active');
+    if(botSelect) {
+        botSelect.innerHTML = '';
+        const allBots = [
+            ...Object.entries(BOT_PERSONALITIES).map(([id, data]) => ({ ...data, id, isCustom: false })),
+            ...customBots.map(bot => ({ ...bot, isCustom: true }))
+        ];
+        allBots.forEach(bot => {
+            const displayText = bot.isCustom ? bot.displayText : `${bot.emoji} ${bot.name}`;
+            botSelect.innerHTML += `<option value="${bot.id}">${displayText}</option>`;
+        });
+    }
+    
+    const modal = document.getElementById('create-project-modal');
+    if (modal) modal.classList.add('active');
 }
 
 /**
@@ -1582,6 +1663,7 @@ function handleProjectFileSelect(event) {
  */
 function renderProjectModalFileList() {
     const fileListDiv = document.getElementById('project-file-list');
+    if (!fileListDiv) return;
     const uploadButton = document.querySelector('#create-project-modal button[onclick*="project-file-input"]');
     fileListDiv.innerHTML = ''; 
 
@@ -1604,9 +1686,11 @@ function renderProjectModalFileList() {
         });
     }
 
-    uploadButton.disabled = projectModalFiles.length >= MAX_PROJECT_FILES;
-    uploadButton.style.opacity = uploadButton.disabled ? '0.6' : '1';
-    uploadButton.style.cursor = uploadButton.disabled ? 'not-allowed' : 'pointer';
+    if (uploadButton) {
+        uploadButton.disabled = projectModalFiles.length >= MAX_PROJECT_FILES;
+        uploadButton.style.opacity = uploadButton.disabled ? '0.6' : '1';
+        uploadButton.style.cursor = uploadButton.disabled ? 'not-allowed' : 'pointer';
+    }
 }
 
 /**
@@ -1623,7 +1707,8 @@ function removeProjectModalFile(index) {
  * damit sie direkt im Projektobjekt in der IndexedDB gespeichert werden können.
  */
 async function saveProject() {
-    const name = document.getElementById('project-name-input').value.trim();
+    const nameInput = document.getElementById('project-name-input');
+    const name = nameInput ? nameInput.value.trim() : '';
     if (!name) { 
         showNotification("Bitte gib einen Namen für das Projekt ein.", 'error'); 
         return; 
@@ -1636,12 +1721,14 @@ async function saveProject() {
     );
     const files = await Promise.all(fileDataPromises);
 
+    const botSelect = document.getElementById('project-bot-select');
+    const textsInput = document.getElementById('project-texts-input');
     const newProject = {
         id: 'project_' + Date.now(),
         name: name,
-        botId: document.getElementById('project-bot-select').value,
+        botId: botSelect ? botSelect.value : 'bred',
         knowledgeBase: {
-            texts: [document.getElementById('project-texts-input').value.trim()],
+            texts: [textsInput ? textsInput.value.trim() : ''],
             files: files
         }
     };
@@ -1651,7 +1738,8 @@ async function saveProject() {
     renderProjectList();
     
     hideLoading();
-    document.getElementById('create-project-modal').classList.remove('active');
+    const modal = document.getElementById('create-project-modal');
+    if (modal) modal.classList.remove('active');
 }
 
 /**
@@ -1767,12 +1855,18 @@ async function getProjectRagResponse(query, project, localChatHistory) {
 /**
  * Zeigt eine Statusmeldung für die Suche im Chat-Bereich an.
  */
-function showSearchStatus(message) { document.getElementById('search-status-container').innerHTML = `<div class="search-status-message">${message}</div>`; }
+function showSearchStatus(message) { 
+    const container = document.getElementById('search-status-container');
+    if (container) container.innerHTML = `<div class="search-status-message">${message}</div>`;
+}
 
 /**
  * Versteckt die Statusmeldung für die Suche.
  */
-function hideSearchStatus() { document.getElementById('search-status-container').innerHTML = ''; }
+function hideSearchStatus() { 
+    const container = document.getElementById('search-status-container');
+    if (container) container.innerHTML = ''; 
+}
 
 /**
  * Dies ist die zentrale Funktion, die ausgelöst wird, wenn der Nutzer eine Nachricht sendet.
@@ -1786,6 +1880,7 @@ function hideSearchStatus() { document.getElementById('search-status-container')
  */
 async function sendMessage() {
     const input = document.getElementById('message-input');
+    if (!input) return;
     let message = input.value.trim();
     if (!message && !uploadedFile) return;
 
@@ -1798,8 +1893,11 @@ async function sendMessage() {
     const tempFile = uploadedFile;
     input.value = '';
     uploadedFile = null;
-    document.getElementById('file-input').value = null;
-    document.querySelector('#upload-button i').style.color = '#aaa';
+    const fileInput = document.getElementById('file-input');
+    if (fileInput) fileInput.value = null;
+    const uploadIcon = document.querySelector('#upload-button i');
+    if (uploadIcon) uploadIcon.style.color = '#aaa';
+    
     adjustTextareaHeight();
     updateChatUI();
     showLoading();
@@ -2015,6 +2113,9 @@ async function sendGeminiTextMessage(message, modelId, history = chatHistory, sy
  * (ohne Animation) oder im laufenden Betrieb (mit Animation und Scroll).
  */
 function addMessage(text, type, isInitialLoad = false) {
+    const container = document.getElementById('chat-container');
+    if (!container) return;
+
     const div = document.createElement('div');
     div.className = `message ${type}`;
     if (type === 'bot') {
@@ -2023,7 +2124,6 @@ function addMessage(text, type, isInitialLoad = false) {
         div.textContent = text;
     }
     
-    const container = document.getElementById('chat-container');
     container.appendChild(div);
     
     if (!isInitialLoad) {
@@ -2119,8 +2219,10 @@ function processBotResponse(response) {
  * Zeigt die Ladeanimation im Senden-Button an.
  */
 function showLoading() { 
-    document.getElementById('send-text').style.display = 'none'; 
-    document.getElementById('loading').style.display = 'inline-block'; 
+    const sendText = document.getElementById('send-text');
+    if (sendText) sendText.style.display = 'none'; 
+    const loading = document.getElementById('loading');
+    if (loading) loading.style.display = 'inline-block'; 
     const saveButton = document.querySelector('#create-project-modal button[onclick="saveProject()"]');
     if (saveButton) saveButton.disabled = true;
 }
@@ -2129,8 +2231,10 @@ function showLoading() {
  * Versteckt die Ladeanimation im Senden-Button.
  */
 function hideLoading() { 
-    document.getElementById('send-text').style.display = 'inline';
-    document.getElementById('loading').style.display = 'none';
+    const sendText = document.getElementById('send-text');
+    if (sendText) sendText.style.display = 'inline';
+    const loading = document.getElementById('loading');
+    if (loading) loading.style.display = 'none';
     const saveButton = document.querySelector('#create-project-modal button[onclick="saveProject()"]');
     if (saveButton) saveButton.disabled = false;
 }
@@ -2139,7 +2243,8 @@ function hideLoading() {
  * Schaltet zwischen dem hellen und dunklen Theme um und speichert die Auswahl.
  */
 async function toggleTheme() { 
-    const isDark = document.getElementById('theme-toggle').checked;
+    const themeToggle = document.getElementById('theme-toggle');
+    const isDark = themeToggle ? themeToggle.checked : false;
     const theme = isDark ? 'dark' : 'light';
     document.documentElement.setAttribute('data-theme', theme); 
     await dbHelper.save(dbHelper.STORES.APP_STATE, { key: SETTING_KEYS.THEME, value: theme });
@@ -2159,7 +2264,8 @@ async function changeAccentColor(color, shouldSave = true) {
  * Aktiviert oder deaktiviert die automatische Websuche und speichert die Einstellung.
  */
 async function toggleAutoSearch() { 
-    isAutoSearchEnabled = document.getElementById('auto-search-toggle').checked;
+    const autoSearchToggle = document.getElementById('auto-search-toggle');
+    isAutoSearchEnabled = autoSearchToggle ? autoSearchToggle.checked : true;
     await dbHelper.save(dbHelper.STORES.APP_STATE, { key: SETTING_KEYS.AUTO_SEARCH, value: isAutoSearchEnabled });
 }
 
@@ -2182,8 +2288,10 @@ function fileToBase64(file) {
 function handleFileSelect(event) {
     if(event.target.files[0]) {
         uploadedFile = event.target.files[0];
-        document.getElementById('message-input').placeholder = `"${uploadedFile.name}" | Frage dazu stellen...`;
-        document.querySelector('#upload-button i').style.color = 'var(--primary-accent)';
+        const messageInput = document.getElementById('message-input');
+        if (messageInput) messageInput.placeholder = `"${uploadedFile.name}" | Frage dazu stellen...`;
+        const uploadIcon = document.querySelector('#upload-button i');
+        if (uploadIcon) uploadIcon.style.color = 'var(--primary-accent)';
     }
 }
 
@@ -2202,12 +2310,19 @@ function handleKeyPress(event) {
  */
 function toggleSidebar() { 
     const container = document.querySelector('.main-container');
+    if (!container) return;
     container.classList.toggle('sidebar-collapsed');
     const isVisible = !container.classList.contains('sidebar-collapsed');
-    document.querySelector('.hamburger').classList.toggle('active', isVisible);
-    document.querySelector('.sidebar-toggle').classList.toggle('active', isVisible);
+    
+    const hamburger = document.querySelector('.hamburger');
+    if (hamburger) hamburger.classList.toggle('active', isVisible);
+    
+    const sidebarToggle = document.querySelector('.sidebar-toggle');
+    if (sidebarToggle) sidebarToggle.classList.toggle('active', isVisible);
+    
     if (window.innerWidth <= 768) {
-        document.querySelector('.sidebar-overlay').classList.toggle('active', isVisible);
+        const overlay = document.querySelector('.sidebar-overlay');
+        if (overlay) overlay.classList.toggle('active', isVisible);
     }
 }
 
@@ -2217,9 +2332,10 @@ function toggleSidebar() {
  */
 function toggleTab(tabName) {
     const content = document.getElementById(`${tabName}-content`);
+    if (!content) return;
     const header = content.previousElementSibling;
     const isActive = content.classList.toggle('active');
-    header.classList.toggle('active', isActive);
+    if (header) header.classList.toggle('active', isActive);
     
     document.querySelectorAll('.sidebar .tab-content').forEach(c => { if(c !== content) c.classList.remove('active'); });
     document.querySelectorAll('.sidebar .tab-header').forEach(h => { if(h !== header) h.classList.remove('active'); });
@@ -2230,13 +2346,18 @@ function toggleTab(tabName) {
  * Ich habe die Button-Texte angepasst, damit sie auf Deutsch sind.
  */
 function startTour() {
-    introJs().setOptions({
-        nextLabel: 'Weiter →',
-        prevLabel: '← Zurück',
-        doneLabel: 'Fertig',
-        showStepNumbers: false,
-        exitOnOverlayClick: false
-    }).start();
+    // Überprüfen, ob introJs eine Funktion ist, bevor sie aufgerufen wird.
+    if (typeof introJs === 'function') {
+        introJs().setOptions({
+            nextLabel: 'Weiter →',
+            prevLabel: '← Zurück',
+            doneLabel: 'Fertig',
+            showStepNumbers: false,
+            exitOnOverlayClick: false
+        }).start();
+    } else {
+        console.error("Intro.js ist nicht geladen. Tour kann nicht gestartet werden.");
+    }
 }
 
 /**
@@ -2268,11 +2389,13 @@ function showInfo(type) {
 async function updateAISetting(type, value) {
     if (type === 'temperature') {
         temperature = parseFloat(value);
-        document.getElementById('temperature-value').textContent = temperature;
+        const tempValue = document.getElementById('temperature-value');
+        if (tempValue) tempValue.textContent = temperature;
         await dbHelper.save(dbHelper.STORES.APP_STATE, { key: SETTING_KEYS.TEMPERATURE, value: temperature });
     } else if (type === 'topP') {
         topP = parseFloat(value);
-        document.getElementById('top-p-value').textContent = topP;
+        const topPValue = document.getElementById('top-p-value');
+        if (topPValue) topPValue.textContent = topP;
         await dbHelper.save(dbHelper.STORES.APP_STATE, { key: SETTING_KEYS.TOP_P, value: topP });
     }
 }
