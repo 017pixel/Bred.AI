@@ -1,4 +1,3 @@
-
 /**
  * Das dbHelper-Objekt habe ich als zentralen Helfer für alle Interaktionen mit der IndexedDB gemacht.
  * Es kapselt die Komplexität der Datenbank-API und stellt einfache Methoden wie init, get, save und delete bereit.
@@ -297,7 +296,19 @@ async function initializeSystem() {
  * und dem Nutzer eine verständliche Fehlermeldung anzuzeigen.
  */
 document.addEventListener('DOMContentLoaded', async function() {
+    // REPARIERT: Alle Zuweisungen von DOM-Elementen und Event-Listenern,
+    // die von ihnen abhängen, sind jetzt sicher hier drin.
     voiceInterruptBtn = document.getElementById('voice-interrupt-button');
+    voiceOverlay = document.getElementById('voice-overlay');
+    voiceStatus = document.getElementById('voice-status');
+    voiceTranscript = document.getElementById('voice-transcript');
+    voiceChatBtn = document.getElementById('voice-chat-btn');
+    textarea = document.getElementById('message-input');
+    
+    // Event-Listener, die vorher im globalen Scope waren
+    textarea.addEventListener('input', adjustTextareaHeight);
+    document.getElementById('new-interest').addEventListener('keypress', function(e) { if (e.key === 'Enter') addInterest(); });
+
     try {
         await initializeSystem();
         
@@ -1144,6 +1155,8 @@ async function deleteProfile(profileIdToDelete) {
  * mit dem Inhalt wächst, was eine bessere User Experience bietet.
  */
 const adjustTextareaHeight = () => {
+    // REPARIERT: Diese Funktion wird jetzt erst aufgerufen, nachdem 'textarea' sicher zugewiesen wurde.
+    if (!textarea) return;
     textarea.style.height = 'auto';
     textarea.style.height = `${textarea.scrollHeight}px`;
     if (textarea.scrollHeight > parseInt(getComputedStyle(textarea).maxHeight)) {
@@ -1152,7 +1165,6 @@ const adjustTextareaHeight = () => {
         textarea.style.overflowY = 'hidden';
     }
 };
-textarea.addEventListener('input', adjustTextareaHeight);
 
 /**
  * Rendert die Liste der letzten Chat-Sitzungen in der Sidebar.
@@ -2184,7 +2196,6 @@ function handleKeyPress(event) {
         sendMessage();
     }
 }
-document.getElementById('new-interest').addEventListener('keypress', function(e) { if (e.key === 'Enter') addInterest(); });
 
 /**
  * Öffnet oder schließt die Sidebar und steuert das Overlay auf Mobilgeräten.
