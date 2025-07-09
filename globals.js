@@ -1,6 +1,6 @@
 /**
- * Hier habe ich meine Sammlung von Gemini API-Keys hinterlegt.
- * Durch die Rotation dieser Schlüssel umgehe ich die Rate-Limits (Anfragen pro Minute/Tag) der API,
+ * Hier habe ich meine Sammlung von Gemini API-Keys hinterlegt. Sie sind komplett kostenlos. Wenn du sie klauen willst, wirst du dir dadurch keine Vorteile verschaffen, hohl dir einfach einen eigenen auf aistudio.google.com.
+ * Durch das Wechseln dieser Schlüssel umgehe ich die Rate-Limits (Anfragen pro Minute/Tag) der API,
  * was die Anwendung robuster macht.
  */
 const GEMINI_API_KEYS = [
@@ -27,7 +27,7 @@ const CUSTOM_SEARCH_API_URL = "https://www.googleapis.com/customsearch/v1";
  */
 const MODELS = {
     "gemini": { "id": "gemini-2.5-flash-lite-preview-06-17", "name": "Gemini", "emoji": "💎", "provider": "gemini", "capabilities": ["text", "vision", "search"], "rpm": 15, "rpd": 1000 },
-    "gemini-pro": { "id": "gemini-2.0-flash", "name": "Gemini Pro", "emoji": "💡", "provider": "gemini", "capabilities": ["text", "search"], "rpm": 15, "rpd": 200 },
+    "gemini-pro": { "id": "gemini-2.0-flash", "name": "Gemini Pro", "emoji": "💡", "provider": "gemini", "capabilities": ["text", "search"], "rpm": 10, "rpd": 200 },
     "gemini-check": { "id": "gemini-1.5-flash-latest", "provider": "gemini", "rpm": 15, "rpd": 1000 }
 };
 
@@ -42,7 +42,9 @@ const SETTING_KEYS = {
     AUTO_SEARCH: 'autoSearch',
     VOICE_RATE: 'voiceRate',
     VOICE_PITCH: 'voicePitch',
-    VOICE_NAME: 'voiceName'
+    VOICE_NAME: 'voiceName',
+    TEMPERATURE: 'temperature',
+    TOP_P: 'topP'
 };
 
 // --- GLOBALE ZUSTANDS-VARIABLEN ---
@@ -75,6 +77,10 @@ let projectModalFiles = [];
 let historyDisplayCount = 3;
 let knowledgeChunks = []; // Für das interne RAG-System
 
+// Chat-Konfiguration
+let temperature = 0.7;
+let topP = 0.95;
+
 // Sprachmodus
 let isVoiceModeActive = false;
 let speechRecognition;
@@ -87,12 +93,13 @@ let germanVoices = [];
 let currentVoiceName = null;
 
 // DOM-Elemente, die häufig verwendet werden
+// REPARIERT: Elemente werden nur deklariert, nicht sofort zugewiesen.
 let voiceInterruptBtn;
-const voiceOverlay = document.getElementById('voice-overlay');
-const voiceStatus = document.getElementById('voice-status');
-const voiceTranscript = document.getElementById('voice-transcript');
-const voiceChatBtn = document.getElementById('voice-chat-btn');
-const textarea = document.getElementById('message-input');
+let voiceOverlay;
+let voiceStatus;
+let voiceTranscript;
+let voiceChatBtn;
+let textarea;
 
 // Konstanten für die Anwendungslogik
 const MOBILE_SAFETY_DELAY = 400;
