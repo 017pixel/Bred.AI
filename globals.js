@@ -10,7 +10,7 @@
 
 // API-Endpunkte und Konfigurationen
 const GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models/";
-const CUSTOM_SEARCH_API_KEY = "AIzaSyBsWxcHKSM6wWIhyc5VyCBIVJ5uQUyJyyQ";
+const CUSTOM_SEARCH_API_KEY = "AIzaSyBsWxcHKSM6wWIhyc5VyCBIVJ5uQUyJyyQ"; // TODO!!!!!!! DAS AUCH NOCH FIXEN UND SELBER EINSETZBAR MACHEN!!!!
 const CUSTOM_SEARCH_ENGINE_ID = "64c5966cc634a4e06";
 const CUSTOM_SEARCH_API_URL = "https://www.googleapis.com/customsearch/v1";
 
@@ -99,4 +99,5 @@ let textarea;
 
 // Konstanten für die Anwendungslogik
 const MOBILE_SAFETY_DELAY = 400;
+
 const MAX_PROJECT_FILES = 10;
