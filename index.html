@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="de">
+      
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BredAI</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤖</text></svg>">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <!-- NEU: CSS für die Tour-Bibliothek -->
+    <link rel="stylesheet" href="https://unpkg.com/intro.js/minified/introjs.min.css">
+</head>
+
+    
+<body>
+
+    <div id="notification-container"></div>
+
+    <!-- Header -->
+    <div class="header">
+        <div class="logo">
+            <i class="fas fa-robot"></i>
+            <span>Bred.AI</span>
+        </div>
+        <div class="header-actions">
+
+                  
+            <button class="chat-control-btn" id="voice-chat-btn" onclick="toggleVoiceMode()" title="Sprachchat starten">
+                <i class="fas fa-microphone"></i>
+            </button>
+
+            <button class="chat-control-btn new-chat-btn" onclick="newChat()" title="Neuer Chat">
+                <i class="fas fa-plus"></i>
+            </button>
+
+            <button class="sidebar-toggle" onclick="toggleSidebar()" data-step="1" data-intro="Hallo! Willkommen bei BredAI. Klicke hier, um diese Seitenleiste mit allen Funktionen zu öffnen und zu schließen.">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <div class="hamburger" onclick="toggleSidebar()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar Overlay (Mobile) -->
+    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+    <div class="main-container">
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <!-- NEW: Projects Tab -->
+            <div class="sidebar-tab">
+                <div class="tab-header active" onclick="toggleTab('projects')">
+                    <span><i class="fas fa-folder"></i> Projekte</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="tab-content active" id="projects-content">
+                    <div class="settings-box">
+                        <h3>Meine Projekte</h3>
+                        <div id="project-list-container">
+                            <!-- Projekte werden hier per JS geladen -->
+                        </div>
+                        <div class="project-item" onclick="openCreateProjectModal()" style="color: var(--primary-accent); border-style: dashed;">
+                            <i class="fas fa-plus" style="margin-right: 8px;"></i>
+                            <span>Neues Projekt erstellen</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bot Personalities -->
+            <div class="sidebar-tab">
+                <div class="tab-header" onclick="toggleTab('bots')">
+                    <span><i class="fas fa-users"></i> Bot-Persönlichkeiten</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="tab-content" id="bots-content">
+                    <div class="settings-box" data-step="2" data-intro="Hier kannst du zwischen verschiedenen KI-Persönlichkeiten wechseln oder deine eigenen erstellen.">
+                        <h3>Verfügbare Bots</h3>
+                        <div id="bot-list-container">
+                            <!-- Bots werden hier per JS geladen -->
+                        </div>
+                        <div class="bot-item" onclick="openCreateBotModal()" style="color: var(--primary-accent); border-style: dashed;">
+                            <i class="fas fa-plus" style="margin-right: 8px;"></i>
+                            <span>Eigenen Bot erstellen</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chat History -->
+            <div class="sidebar-tab">
+                <div class="tab-header" onclick="toggleTab('history')">
+                    <span><i class="fas fa-history"></i> Chatverlauf</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="tab-content" id="history-content">
+                    <div class="settings-box">
+                        <h3>Letzte Chats</h3>
+                        <div id="chat-history-container">
+                            <!-- Verlauf wird hier per JS geladen -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- NEU: API Keys Tab -->
+            <div class="sidebar-tab">
+                <div class="tab-header" onclick="toggleTab('api-keys')">
+                    <span><i class="fas fa-key"></i> API-Schlüssel</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="tab-content" id="api-keys-content">
+                    <div class="settings-box">
+                        <h3>Gemini API-Schlüssel</h3>
+                        <div id="api-key-container">
+                            <input type="password" class="api-key-input" placeholder="Schlüssel 1">
+                            <input type="password" class="api-key-input" placeholder="Schlüssel 2">
+                            <input type="password" class="api-key-input" placeholder="Schlüssel 3">
+                            <input type="password" class="api-key-input" placeholder="Schlüssel 4">
+                            <input type="password" class="api-key-input" placeholder="Schlüssel 5">
+                        </div>
+                        <div class="modal-actions" style="margin-top: 15px; flex-direction: column; gap: 10px;">
+                            <button onclick="saveApiKeys()" class="modal-btn primary" style="width: 100%;">
+                                <i class="fas fa-save"></i> Schlüssel speichern
+                            </button>
+                            <button onclick="openApiKeyHelpModal()" class="modal-btn secondary" style="width: 100%;">
+                                <i class="fas fa-question-circle"></i> Wie erhalte ich einen Schlüssel?
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Models -->
+            <div class="sidebar-tab">
+                <div class="tab-header" onclick="toggleTab('models')">
+                    <span><i class="fas fa-brain"></i> KI-Modelle</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="tab-content" id="models-content">
+                    <div class="settings-box" data-step="3" data-intro="Wähle hier das passende KI-Modell. Gemini Pro ist schnell, Gemini kann zusätzlich auch Bilder analysieren.">
+                        <h3>Verfügbare Modelle</h3>
+                        <div id="model-list-container">
+                             <!-- Modelle werden hier per JS geladen -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interests -->
+            <div class="sidebar-tab">
+                <div class="tab-header" onclick="toggleTab('interests')">
+                    <span><i class="fas fa-heart"></i> Interessen</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="tab-content" id="interests-content">
+                    <div class="settings-box">
+                        <h3>Meine Interessen</h3>
+                        <div id="interests-container">
+                             <!-- Interessen werden hier per JS geladen -->
+                        </div>
+                        <div class="add-interest">
+                            <input type="text" id="new-interest" placeholder="Interesse eingeben...">
+                            <button onclick="addInterest()">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings -->
+            <div class="sidebar-tab">
+                <div class="tab-header" onclick="toggleTab('settings')">
+                    <span><i class="fas fa-cog"></i> Einstellungen</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                    <div class="tab-content" id="settings-content">
+                    <!-- NEW: Profile Management Box -->
+                    <div class="settings-box">
+                        <h3><i class="fas fa-users"></i> Benutzerkonten</h3>
+                        <div id="profiles-container">
+                            <!-- Profile werden hier per JS geladen -->
+                        </div>
+                        <div class="bot-item" onclick="openCreateProfileModal()" style="color: var(--primary-accent); border-style: dashed;">
+                             <i class="fas fa-plus" style="margin-right: 8px;"></i>
+                             <span>Neues Profil erstellen</span>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-box">
+                        <h3><i class="fas fa-search"></i> Websuche</h3>
+                        <!-- MODIFIED: Inline-Style "justify-content: space-between;" wurde entfernt -->
+                        <div class="theme-toggle">
+                            <span>Automatische Suche</span>
+                            <label class="switch">
+                                <input type="checkbox" id="auto-search-toggle" onchange="toggleAutoSearch()">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="settings-box">
+                        <h3><i class="fas fa-comments"></i> Chat</h3>
+                        <div class="bot-item" onclick="clearChat()">
+                            <span>🔄 Chat löschen</span>
+                        </div>
+                    </div>
+
+                    <!-- NEU: Kompletter Block für KI-Einstellungen -->
+                    <div class="settings-box">
+                        <h3><i class="fas fa-sliders-h"></i> Globale KI-Einstellungen</h3>
+                        <div style="padding: 5px 10px;">
+                            <label for="temperature-slider" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px;">
+                                <span>Kreativität (Temperatur)</span>
+                                <i class="fas fa-info-circle" style="cursor: pointer;" onclick="showInfo('temp')"></i>
+                            </label>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <input type="range" id="temperature-slider" min="0" max="1" step="0.1" oninput="updateAISetting('temperature', this.value)" style="width: 100%;">
+                                <span id="temperature-value" style="min-width: 30px;">0.7</span>
+                            </div>
+                        </div>
+                        <div style="padding: 5px 10px; margin-top: 10px;">
+                            <label for="top-p-slider" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px;">
+                                <span>Wortauswahl (Top-P)</span>
+                                <i class="fas fa-info-circle" style="cursor: pointer;" onclick="showInfo('topP')"></i>
+                            </label>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <input type="range" id="top-p-slider" min="0.1" max="1" step="0.05" oninput="updateAISetting('topP', this.value)" style="width: 100%;">
+                                <span id="top-p-value" style="min-width: 30px;">0.95</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- NEU: Sprachausgabe-Einstellungen -->
+                    <div class="settings-box">
+                        <h3><i class="fas fa-volume-up"></i> Sprachausgabe</h3>
+                        <div style="padding: 5px 10px;">
+                            <label for="voice-rate-slider" style="display: block; margin-bottom: 5px;">Geschwindigkeit</label>
+                            <input type="range" id="voice-rate-slider" min="0.5" max="2" step="0.1" value="1.1" oninput="updateVoiceSetting('rate', this.value)" style="width: 100%;">
+                        </div>
+                        <div style="padding: 5px 10px; margin-top: 10px;">
+                            <label for="voice-pitch-slider" style="display: block; margin-bottom: 5px;">Tonhöhe</label>
+                            <input type="range" id="voice-pitch-slider" min="0" max="2" step="0.1" value="1.0" oninput="updateVoiceSetting('pitch', this.value)" style="width: 100%;">
+                        </div>
+                        <div style="padding: 5px 10px; margin-top: 10px;">
+                            <label for="voice-select" style="display: block; margin-bottom: 5px;">Stimme</label>
+                            <select id="voice-select" onchange="updateVoiceSetting('voice', this.value)" style="width: 100%; padding: 8px; border-radius: 5px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary);">
+                                <option>Stimmen werden geladen...</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="settings-box">
+                        <h3><i class="fas fa-palette"></i> Aussehen</h3>
+                        <div class="theme-toggle">
+                            <span>🌞</span>
+                            <label class="switch">
+                                <input type="checkbox" id="theme-toggle" onchange="toggleTheme()">
+                                <span class="slider round"></span>
+                            </label>
+                            <span>🌙</span>
+                        </div>
+                    </div>
+                    <div class="settings-box">
+                        <h3><i class="fas fa-palette"></i> Akzentfarbe</h3>
+                        <div class="theme-toggle" style="justify-content: space-between;">
+                            <span>Farbe auswählen</span>
+                            <select id="accent-color-select" onchange="changeAccentColor(this.value)" style="padding: 5px; border-radius: 5px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary);">
+                                <option value="green">Standard Grün</option>
+                                <option value="pastel-green">Pastell Grün</option>
+                                <option value="blue">Blau</option>
+                                <option value="orange">Orange</option>
+                                <option value="purple">Lila</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Help -->
+            <div class="sidebar-tab">
+                <div class="tab-header" onclick="toggleTab('help')">
+                    <span><i class="fas fa-question-circle"></i> Hilfe</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="tab-content" id="help-content">
+                    <div class="settings-box">
+                        <h3>Hilfe & Support</h3>
+                        <div class="bot-item" onclick="startTour()">
+                            <span>🚀 Kurze Tour starten</span>
+                        </div>
+                        <div class="bot-item" onclick="showHelp()">
+                            <span>❓ Hilfe anzeigen</span>
+                        </div>
+                        <div class="bot-item" onclick="showAbout()">
+                            <span>ℹ️ Über BredAI</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content" id="main-content">
+            <!-- Chat Header (jetzt wieder ein direktes Kind von main-content) -->
+            <div class="chat-header">
+                <div class="current-config" id="current-config">
+                    <!-- Config wird per JS geladen -->
+                </div>
+            </div>
+
+            <!-- Dieser Wrapper ist jetzt NUR für den scrollbaren Nachrichtenbereich da -->
+            <div class="chat-wrapper">
+                <div class="chat-container" id="chat-container">
+                    <!-- Chat-Nachrichten werden hier per JS geladen -->
+                </div>
+            </div>
+
+            <!-- NEU: Kompletter Eingabebereich im minimalistischen Gemini-Stil -->
+            <div class="chat-input-area" data-step="4" data-intro="Und hier schreibst du deine Nachrichten. Mit der Büroklammer kannst du auch Dateien hochladen. Viel Spaß!">
+                <div class="search-status-container" id="search-status-container"></div>
+                
+                <div class="chat-input">
+                    <!-- Die Textarea nimmt den meisten Platz ein -->
+                    <textarea id="message-input" placeholder="Nachricht an..." rows="1" onkeypress="handleKeyPress(event)"></textarea>
+                    
+                    <!-- Wrapper für die Aktionen, die rechts überlagert werden -->
+                    <div class="input-actions-wrapper">
+                        <input type="file" id="file-input" style="display: none;" onchange="handleFileSelect(event)">
+                        <button id="upload-button" class="chat-control-btn" onclick="document.getElementById('file-input').click()" title="Datei anhängen">
+                            <i class="fas fa-paperclip"></i>
+                        </button>
+                        <button class="send-btn" onclick="sendMessage()" title="Senden">
+                            <span id="send-text"><i class="fas fa-arrow-up"></i></span>
+                            <div class="loading" id="loading" style="display: none;"></div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Setup Modal -->
+    <div class="modal" id="profile-modal">
+        <div class="modal-content">
+            <h2 style="color: var(--primary-accent); text-align: center; margin-bottom: 20px;">
+                <i class="fas fa-user-plus"></i> Profil erstellen
+            </h2>
+            <p style="text-align: center; margin-bottom: 20px; color: #666;">
+                Willkommen bei BredAI! Erstelle dein persönliches Profil für eine optimale Erfahrung.
+            </p>
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: 600; color: var(--primary-accent);">Name:</label>
+                <input type="text" id="profile-name" style="width: 100%; padding: 10px; border: 2px solid var(--border-color); border-radius: 8px; outline: none;" placeholder="Dein Name">
+            </div>
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: 600; color: var(--primary-accent);">Alter:</label>
+                <input type="number" id="profile-age" style="width: 100%; padding: 10px; border: 2px solid var(--border-color); border-radius: 8px; outline: none;" placeholder="Dein Alter">
+            </div>
+            <div style="margin-bottom: 30px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: 600; color: var(--primary-accent);">Kurze Beschreibung:</label>
+                <textarea id="profile-description" style="width: 100%; padding: 10px; border: 2px solid var(--border-color); border-radius: 8px; outline: none; height: 100px; resize: vertical;" placeholder="Erzähl etwas über dich..."></textarea>
+            </div>
+                  
+            <div class="modal-actions">
+                <button onclick="skipProfileCreation()" class="modal-btn secondary">
+                    Ohne Profil fortfahren
+                </button>
+                <button id="save-profile-btn" onclick="saveProfile()" class="modal-btn primary">
+                    <i class="fas fa-save"></i> <span id="save-profile-btn-text">Profil speichern</span>
+                </button>
+            </div>
+
+    
+        </div>
+    </div>
+
+    <!-- Custom Bot Modal -->
+    <div class="modal" id="create-bot-modal">
+        <div class="modal-content">
+            <h2 style="color: var(--primary-accent); text-align: center; margin-bottom: 20px;">
+                <i class="fas fa-robot"></i> Eigenen Bot erstellen
+            </h2>
+            <p style="text-align: center; margin-bottom: 20px; color: #666;">
+                Erstelle eine einzigartige Persönlichkeit für deinen Chat-Partner.
+            </p>
+
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: 600;">Bot-Name:</label>
+                <input type="text" id="custom-bot-name" style="width: 100%; padding: 10px; border-radius: 8px; border: 2px solid var(--border-color);" placeholder="z.B. Koch-Bot">
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: 600;">Anzeige-Text (mit Emoji):</label>
+                <input type="text" id="custom-bot-display" style="width: 100%; padding: 10px; border-radius: 8px; border: 2px solid var(--border-color);" placeholder="z.B. 🍳 Koch-Bot - Dein Küchenhelfer">
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: 600;">Standard KI-Modell:</label>
+                <select id="custom-bot-model" style="width: 100%; padding: 10px; border-radius: 8px; background: white; border: 2px solid var(--border-color);">
+                    <!-- Optionen werden dynamisch via JavaScript hinzugefügt -->
+                </select>
+            </div>
+            
+            <div style="margin-bottom: 25px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: 600;">System-Prompt (Anweisung an die KI):</label>
+                <textarea id="custom-bot-prompt" style="width: 100%; padding: 10px; border-radius: 8px; height: 120px; resize: vertical; border: 2px solid var(--border-color);" placeholder="z.B. Du bist ein Experte für einfache und schnelle Rezepte. Antworte immer mit einer Zutatenliste und einer schrittweisen Anleitung."></textarea>
+            </div>
+            
+            <!-- NEU: KI-Einstellungen für Custom Bots -->
+            <div style="margin-bottom: 15px; padding: 15px; border: 1px solid var(--border-color); border-radius: 8px;">
+                <h4 style="margin: 0 0 10px 0; font-weight: 600;">Spezifische KI-Einstellungen (Optional)</h4>
+                <div>
+                    <label for="custom-bot-temperature-slider" style="display: flex; align-items: center; justify-content: space-between;">
+                        <span>Kreativität (Temperatur)</span>
+                        <i class="fas fa-info-circle" style="cursor: pointer;" onclick="showInfo('temp')"></i>
+                    </label>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <input type="range" id="custom-bot-temperature-slider" min="0" max="1" step="0.1" value="0.7" oninput="this.nextElementSibling.textContent = this.value" style="width: 100%;">
+                        <span id="custom-bot-temperature-value">0.7</span>
+                    </div>
+                </div>
+                <div style="margin-top: 10px;">
+                    <label for="custom-bot-top-p-slider" style="display: flex; align-items: center; justify-content: space-between;">
+                        <span>Wortauswahl (Top-P)</span>
+                        <i class="fas fa-info-circle" style="cursor: pointer;" onclick="showInfo('topP')"></i>
+                    </label>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <input type="range" id="custom-bot-top-p-slider" min="0.1" max="1" step="0.05" value="0.95" oninput="this.nextElementSibling.textContent = this.value" style="width: 100%;">
+                        <span id="custom-bot-top-p-value">0.95</span>
+                    </div>
+                </div>
+            </div>
+
+            <div style="text-align: center; display: flex; gap: 10px; justify-content: center;">
+                <button onclick="document.getElementById('create-bot-modal').classList.remove('active')" style="background: #ccc; color: #333; padding: 12px 30px; border-radius: 25px; cursor: pointer;">
+                    Abbrechen
+                </button>
+                <button onclick="saveCustomBot()" style="background: var(--primary-accent); color: white; border: none; padding: 12px 30px; border-radius: 25px; cursor: pointer; font-size: 1rem;">
+                    <i class="fas fa-save"></i> Bot Speichern
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- NEW: Create Project Modal -->
+    <div class="modal" id="create-project-modal">
+        <div class="modal-content">
+            <h2 style="color: var(--primary-accent); text-align: center; margin-bottom: 20px;">
+                <i class="fas fa-folder"></i> Neues Projekt erstellen
+            </h2>
+            <p style="text-align: center; margin-bottom: 20px; color: #666;">
+                Definiere eine Wissensbasis für deine Chats. Lade Dateien hoch oder füge Texte ein.
+            </p>
+
+            <input type="hidden" id="project-id-input">
+
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: 600;">Projekt-Name:</label>
+                <input type="text" id="project-name-input" style="width: 100%; padding: 10px; border-radius: 8px; border: 2px solid var(--border-color);" placeholder="z.B. Meine Urlaubsplanung">
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: 600;">Bot-Persönlichkeit für dieses Projekt:</label>
+                <select id="project-bot-select" style="width: 100%; padding: 10px; border-radius: 8px; background: white; border: 2px solid var(--border-color);">
+                    <!-- Optionen werden dynamisch via JavaScript hinzugefügt -->
+                </select>
+            </div>
+            
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: 600;">Kopierte Texte (Wissensbasis):</label>
+                <textarea id="project-texts-input" style="width: 100%; padding: 10px; border-radius: 8px; height: 120px; resize: vertical; border: 2px solid var(--border-color);" placeholder="Füge hier relevante Texte, Notizen oder Informationen ein..."></textarea>
+            </div>
+
+            <div style="margin-bottom: 25px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: 600;">Dateien (Wissensbasis):</label>
+                <input type="file" id="project-file-input" multiple style="display: none;">
+                <button onclick="document.getElementById('project-file-input').click()" style="background: var(--primary-accent); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; width: 100%;">
+                    <i class="fas fa-upload"></i> Dateien auswählen...
+                </button>
+                <div id="project-file-list">
+                    <!-- Hochgeladene Dateien werden hier angezeigt -->
+                </div>
+            </div>
+
+            <div style="text-align: center; display: flex; gap: 10px; justify-content: center;">
+                <button onclick="document.getElementById('create-project-modal').classList.remove('active')" style="background: #ccc; color: #333; padding: 12px 30px; border-radius: 25px; cursor: pointer;">
+                    Abbrechen
+                </button>
+                <button onclick="saveProject()" style="background: var(--primary-accent); color: white; border: none; padding: 12px 30px; border-radius: 25px; cursor: pointer; font-size: 1rem;">
+                    <i class="fas fa-save"></i> Projekt Speichern
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NEU: API Key Help Modal -->
+    <div class="modal" id="api-key-help-modal">
+        <div class="modal-content">
+            <h2 style="color: var(--primary-accent); text-align: center; margin-bottom: 20px;">
+                <i class="fas fa-key"></i> Deinen Gemini API-Schlüssel erhalten
+            </h2>
+            <p style="line-height: 1.6; color: var(--text-secondary);">
+                BredAI nutzt die Gemini API von Google, um zu funktionieren. Du benötigst einen eigenen, kostenlosen API-Schlüssel, um Anfragen an die KI senden zu können.
+            </p>
+            <ol style="list-style-type: decimal; margin-left: 20px; margin-top: 15px; line-height: 1.6;">
+                <li style="margin-bottom: 10px;">Klicke auf den Button unten, um zum <strong>Google AI Studio</strong> zu gelangen.</li>
+                <li style="margin-bottom: 10px;">Melde dich mit deinem Google-Konto an.</li>
+                <li style="margin-bottom: 10px;">Klicke auf der linken Seite auf "<strong>Get API key</strong>" und dann auf "<strong>Create API key in new project</strong>".</li>
+                <li style="margin-bottom: 10px;">Kopiere den angezeigten Schlüssel.</li>
+                <li>Füge den Schlüssel in eines der Felder in der Seitenleiste ein und klicke auf "Speichern".</li>
+            </ol>
+            <p style="margin-top: 20px; font-size: 0.9rem; color: var(--text-secondary);">
+                <strong>Tipp:</strong> Du kannst bis zu 5 Schlüssel hinzufügen. BredAI wechselt automatisch zwischen ihnen, um Ausfälle zu vermeiden, falls ein Schlüssel sein Limit erreicht.
+            </p>
+            <div class="modal-actions" style="flex-direction: column; gap: 10px;">
+                <a href="https://aistudio.google.com/app/apikey" target="_blank" class="modal-btn primary" style="text-decoration: none; display: block; width: 100%;">
+                    <i class="fas fa-external-link-alt"></i> Zum Google AI Studio
+                </a>
+                <button onclick="document.getElementById('api-key-help-modal').classList.remove('active')" class="modal-btn secondary" style="width: 100%;">
+                    Schließen
+                </button>
+            </div>
+        </div>
+    </div>
+          
+    <!-- NEU: Voice Chat Overlay (Mobile-Optimiert) -->
+    <div class="voice-overlay" id="voice-overlay">
+        <div class="voice-header">
+            <!-- Logo/Titel wieder hinzugefügt und gestylt -->
+            <div class="voice-logo">
+                <i class="fas fa-robot"></i>
+                <span>BredAI</span>
+            </div>
+            <button class="voice-exit-btn" onclick="toggleVoiceMode()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="voice-content-box">
+            <div class="voice-main-controls">
+                <label for="voice-bot-select">Aktiver Bot:</label>
+                <select id="voice-bot-select" class="voice-bot-select" onchange="handleVoiceBotChange(this.value)"></select>
+            </div>
+            <div class="voice-visualizer-area">
+                <i class="fas fa-wave-square"></i>
+            </div>
+            <div class="voice-transcript-area">
+                <div id="voice-status" class="voice-status">Sprachmodus ist inaktiv.</div>
+                <div id="voice-transcript" class="voice-transcript"></div>
+                <button id="voice-interrupt-button" class="voice-interrupt-btn" style="display: none;" onclick="interruptAndRestartListening()"></button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- NEU: JavaScript für die Tour-Bibliothek -->
+    <script src="https://unpkg.com/intro.js/minified/intro.min.js"></script>
+    <!-- NEU: Aufgeteilte Skript-Dateien -->
+    <script src="knowledge.js"></script>
+    <script src="globals.js"></script>
+    <script src="functions.js"></script>
+</body>
+</html>
