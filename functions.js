@@ -400,6 +400,19 @@ document.addEventListener('DOMContentLoaded', async function() {
         const errorMessage = error.message || "Unbekannter Initialisierungsfehler.";
         showNotification("Anwendung konnte nicht initialisiert werden. Bitte neu laden. Fehler: " + errorMessage, 'error');
     }
+
+    // NEU: Service Worker für PWA registrieren
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./service-worker.js')
+                .then(registration => {
+                    console.log('PWA ServiceWorker: Registrierung erfolgreich. Scope:', registration.scope);
+                })
+                .catch(err => {
+                    console.error('PWA ServiceWorker: Registrierung fehlgeschlagen:', err);
+                });
+        });
+    }
 });
 
 /**
