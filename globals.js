@@ -10,6 +10,8 @@
 
 // API-Endpunkte und Konfigurationen
 const GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models/";
+const CEREBRAS_BASE_URL = "https://api.cerebras.ai/v1";
+const NVIDIA_BASE_URL = "https://integrate.api.nvidia.com/v1";
 const CUSTOM_SEARCH_API_KEY = "AIzaSyBsWxcHKSM6wWIhyc5VyCBIVJ5uQUyJyyQ"; // TODO!!!!!!! DAS AUCH NOCH FIXEN UND SELBER EINSETZBAR MACHEN!!!!
 const CUSTOM_SEARCH_ENGINE_ID = "64c5966cc634a4e06";
 const CUSTOM_SEARCH_API_URL = "https://www.googleapis.com/customsearch/v1";
@@ -22,7 +24,15 @@ const CUSTOM_SEARCH_API_URL = "https://www.googleapis.com/customsearch/v1";
 const MODELS = {
     "gemini": { "id": "gemini-1.5-flash-latest", "name": "Gemini", "emoji": "💎", "provider": "gemini", "capabilities": ["text", "vision", "search"], "rpm": 15, "rpd": 1000 },
     "gemini-pro": { "id": "gemini-pro", "name": "Gemini Pro", "emoji": "💡", "provider": "gemini", "capabilities": ["text", "search"], "rpm": 10, "rpd": 200 },
-    "gemini-check": { "id": "gemini-1.5-flash-latest", "provider": "gemini", "rpm": 15, "rpd": 1000 }
+    "gemini-check": { "id": "gemini-1.5-flash-latest", "provider": "gemini", "rpm": 15, "rpd": 1000 },
+    // Cerebras Modelle
+    "cerebras-llama-3.3-70b": { "id": "llama-3.3-70b", "name": "Llama 3.3 70B", "emoji": "🔥", "provider": "cerebras", "capabilities": ["text"], "rpm": 100, "rpd": 10000 },
+    "cerebras-llama-3.1-8b": { "id": "llama-3.1-8b", "name": "Llama 3.1 8B", "emoji": "🔥", "provider": "cerebras", "capabilities": ["text"], "rpm": 100, "rpd": 10000 },
+    // Nvidia NIM Modelle
+    "nvidia-llama3-chatqa-70b": { "id": "nvidia/llama3-chatqa-1.5-70b", "name": "Llama 3 ChatQA 70B", "emoji": "🤖", "provider": "nvidia", "capabilities": ["text"], "rpm": 100, "rpd": 5000 },
+    "nvidia-llama3-chatqa-8b": { "id": "nvidia/llama3-chatqa-1.5-8b", "name": "Llama 3 ChatQA 8B", "emoji": "🤖", "provider": "nvidia", "capabilities": ["text"], "rpm": 100, "rpd": 5000 },
+    "nvidia-llama-3.1-70b": { "id": "meta/llama-3.1-70b-instruct", "name": "Llama 3.1 70B", "emoji": "🤖", "provider": "nvidia", "capabilities": ["text"], "rpm": 100, "rpd": 5000 },
+    "nvidia-qwen2-72b": { "id": "qwen/qwen2-72b-instruct", "name": "Qwen 2 72B", "emoji": "🤖", "provider": "nvidia", "capabilities": ["text"], "rpm": 100, "rpd": 5000 }
 };
 
 /**
@@ -31,7 +41,8 @@ const MODELS = {
  */
 const SETTING_KEYS = {
     LAST_PROFILE: 'lastActiveProfile',
-    API_KEYS: 'userApiKeys', // NEU
+    API_KEYS: 'userApiKeys',
+    PROVIDER_API_KEYS: 'providerApiKeys',
     ACCENT_COLOR: 'accentColor',
     THEME: 'theme',
     AUTO_SEARCH: 'autoSearch',
@@ -47,6 +58,7 @@ const SETTING_KEYS = {
 
 // API-Key Management
 let userApiKeys = []; // NEU: Wird aus der DB geladen
+let providerApiKeys = { cerebras: '', nvidia: '' }; // API-Keys pro Provider
 let apiKeyUsage = {};
 let currentApiKeyIndex = 0;
 

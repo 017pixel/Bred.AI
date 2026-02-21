@@ -145,6 +145,39 @@ async function saveApiKeys() {
 }
 
 /**
+ * NEU: Lädt die Provider-spezifischen API-Schlüssel aus der IndexedDB.
+ */
+async function loadProviderApiKeys() {
+    const storedKeys = await dbHelper.get(dbHelper.STORES.APP_STATE, SETTING_KEYS.PROVIDER_API_KEYS);
+    if (storedKeys && storedKeys.value) {
+        providerApiKeys = storedKeys.value;
+        console.log("[Provider API Key] Geladen:", providerApiKeys);
+        
+        // Fülle die Input-Felder
+        const cerebrasInput = document.getElementById('cerebras-api-key');
+        const nvidiaInput = document.getElementById('nvidia-api-key');
+        if (cerebrasInput && providerApiKeys.cerebras) cerebrasInput.value = providerApiKeys.cerebras;
+        if (nvidiaInput && providerApiKeys.nvidia) nvidiaInput.value = providerApiKeys.nvidia;
+    }
+}
+
+/**
+ * NEU: Speichert die Provider-spezifischen API-Schlüssel in der IndexedDB.
+ */
+async function saveProviderApiKeys() {
+    const cerebrasInput = document.getElementById('cerebras-api-key');
+    const nvidiaInput = document.getElementById('nvidia-api-key');
+    
+    providerApiKeys = {
+        cerebras: cerebrasInput ? cerebrasInput.value.trim() : '',
+        nvidia: nvidiaInput ? nvidiaInput.value.trim() : ''
+    };
+    
+    await dbHelper.save(dbHelper.STORES.APP_STATE, { key: SETTING_KEYS.PROVIDER_API_KEYS, value: providerApiKeys });
+    showNotification('Provider API-Schlüssel gespeichert!', 'info');
+}
+
+/**
  * NEU: Öffnet das Hilfe-Modal für die API-Schlüssel.
  */
 function openApiKeyHelpModal() {
@@ -347,6 +380,7 @@ async function initializeSystem() {
     await dbHelper.init();
     await loadApiKeys(); // NEU
     await initializeApiKeyUsage();
+    await loadProviderApiKeys(); // NEU: Lade Provider-API-Keys
     preprocessKnowledgeBase();
     await loadProfiles();
     loadProfileData();
@@ -426,13 +460,35 @@ function checkAndShowApiKeyWarning() {
     if (!container || !messageInput || !sendBtn) return;
 
     const existingWarning = document.getElementById('api-key-warning');
-    if (userApiKeys.length === 0) {
-        if (!existingWarning) {
+    const modelInfo = MODELS[currentModel];
+    const provider = modelInfo ? modelInfo.provider : 'gemini';
+    
+    let hasRequiredKey = false;
+    let providerName = 'Google Gemini';
+    let keyMissingMessage = 'Für die Nutzung von BredAI ist ein kostenloser Google Gemini API-Schlüssel erforderlich.';
+    
+    if (provider === 'gemini') {
+        hasRequiredKey = userApiKeys.length > 0;
+        providerName = 'Google Gemini';
+        keyMissingMessage = 'Für die Nutzung von BredAI ist ein kostenloser Google Gemini API-Schlüssel erforderlich. Bitte füge mindestens einen Schlüssel in der Seitenleiste hinzu.';
+    } else if (provider === 'cerebras') {
+        hasRequiredKey = providerApiKeys.cerebras && providerApiKeys.cerebras.length > 0;
+        providerName = 'Cerebras';
+        keyMissingMessage = 'Für die Nutzung von Cerebras-Modellen benötigst du einen API-Key von cloud.cerebras.ai. Bitte trage ihn in der Seitenleiste ein.';
+    } else if (provider === 'nvidia') {
+        hasRequiredKey = providerApiKeys.nvidia && providerApiKeys.nvidia.length > 0;
+        providerName = 'Nvidia NIM';
+        keyMissingMessage = 'Für die Nutzung von Nvidia NIM-Modellen benötigst du einen API-Key von build.nvidia.com. Bitte trage ihn in der Seitenleiste ein.';
+    }
+    
+    if (!hasRequiredKey) {
+        if (!existingWarning || existingWarning.dataset.provider !== provider) {
+            if (existingWarning) existingWarning.remove();
             container.innerHTML = `
-                <div class="api-key-warning" id="api-key-warning">
+                <div class="api-key-warning" id="api-key-warning" data-provider="${provider}">
                     <i class="fas fa-key"></i>
-                    <h4>API-Schlüssel fehlt</h4>
-                    <p>Für die Nutzung von BredAI ist ein kostenloser Google Gemini API-Schlüssel erforderlich. Bitte füge mindestens einen Schlüssel in der Seitenleiste hinzu.</p>
+                    <h4>${providerName} API-Schlüssel fehlt</h4>
+                    <p>${keyMissingMessage}</p>
                     <button onclick="toggleSidebar(); setTimeout(() => toggleTab('api-keys'), 350);">
                         <i class="fas fa-plus-circle"></i> Schlüssel jetzt hinzufügen
                     </button>
@@ -444,12 +500,11 @@ function checkAndShowApiKeyWarning() {
         messageInput.placeholder = "Bitte zuerst API-Schlüssel hinzufügen...";
     } else {
         if (existingWarning) {
-            // Wenn eine Warnung da war, laden wir den Chat neu, um die Willkommensnachricht anzuzeigen
             loadChatSession(currentSessionId);
         }
         messageInput.disabled = false;
         sendBtn.disabled = false;
-        updateChatUI(); // Placeholder aktualisieren
+        updateChatUI();
     }
 }
 
@@ -1602,6 +1657,7 @@ function selectModel(modelId) {
     renderModelList();
     updateCurrentConfig();
     updateChatUI();
+    checkAndShowApiKeyWarning();
 }
 
 /**
@@ -2075,6 +2131,30 @@ async function sendMessage() {
                 } else {
                     botResponse = await sendGeminiTextMessage(finalMessageForApi, modelInfo.id, historyForAPI);
                 }
+                        showSearchStatus("✅ Ergebnisse werden verarbeitet...");
+                    } catch (e) {
+                        showSearchStatus(`Fehler bei Websuche. Fahre ohne Suche fort.`);
+                        finalMessageForApi += `\n\n(Anweisung: Erwähne einen Fehler bei der Websuche.)`;
+                    }
+                    botResponse = await sendGeminiTextMessage(finalMessageForApi, modelInfo.id, historyForAPI);
+                } else {
+                    botResponse = await sendGeminiTextMessage(finalMessageForApi, modelInfo.id, historyForAPI);
+                }
+            } else if (modelInfo.provider === 'cerebras') {
+                botResponse = await sendOpenAICompatibleMessage(finalMessageForApi, modelInfo, historyForAPI);
+            } else if (modelInfo.provider === 'nvidia') {
+                botResponse = await sendOpenAICompatibleMessage(finalMessageForApi, modelInfo, historyForAPI);
+            }
+        }
+                        showSearchStatus("✅ Ergebnisse werden verarbeitet...");
+                    } catch (e) {
+                        showSearchStatus(`Fehler bei Websuche. Fahre ohne Suche fort.`);
+                        finalMessageForApi += `\n\n(Anweisung: Erwähne einen Fehler bei der Websuche.)`;
+                    }
+                    botResponse = await sendGeminiTextMessage(finalMessageForApi, modelInfo.id, historyForAPI);
+                } else {
+                    botResponse = await sendGeminiTextMessage(finalMessageForApi, modelInfo.id, historyForAPI);
+                }
             }
         }
         
@@ -2225,6 +2305,74 @@ async function sendGeminiTextMessage(message, modelId, history = chatHistory, sy
     // Gibt den Text der erfolgreichen Antwort zurück
     const data = await response.json();
     return data.candidates[0].content.parts[0].text;
+}
+
+/**
+ * NEU: Sendet eine Anfrage an OpenAI-kompatible APIs (Cerebras, Nvidia).
+ * Unterstützt Cerebras und Nvidia NIM APIs.
+ */
+async function sendOpenAICompatibleMessage(message, modelInfo, history = chatHistory) {
+    const provider = modelInfo.provider;
+    const apiKey = providerApiKeys[provider];
+    
+    if (!apiKey) {
+        throw new Error(`Kein API-Key für ${provider} konfiguriert. Bitte trage deinen ${provider}-API-Key in den Einstellungen ein.`);
+    }
+    
+    let baseUrl;
+    if (provider === 'cerebras') {
+        baseUrl = CEREBRAS_BASE_URL;
+    } else if (provider === 'nvidia') {
+        baseUrl = NVIDIA_BASE_URL;
+    } else {
+        throw new Error(`Unbekannter Provider: ${provider}`);
+    }
+    
+    const systemPrompt = getPersonalizedSystemPrompt();
+    const activeBot = allBotPersonalities[currentBot];
+    
+    const messages = [
+        ...history.slice(-15).map(entry => ({
+            role: entry.type === 'user' ? 'user' : 'assistant',
+            content: entry.message
+        })),
+        { role: 'user', content: message }
+    ];
+    
+    const requestBody = {
+        model: modelInfo.id,
+        messages: [
+            { role: 'system', content: systemPrompt },
+            ...messages
+        ],
+        temperature: activeBot && activeBot.temperature !== undefined ? activeBot.temperature : temperature,
+        max_tokens: 4096
+    };
+    
+    const url = `${baseUrl}/chat/completions`;
+    
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify(requestBody)
+    });
+    
+    if (!response.ok) {
+        const errorBody = await response.text();
+        console.error(`${provider} API Error:`, response.status, errorBody);
+        try {
+            const errorJson = JSON.parse(errorBody);
+            throw new Error(errorJson.error?.message || `API Fehler (${provider})`);
+        } catch (e) {
+            throw new Error(`API Fehler (${provider}) - ${response.status}`);
+        }
+    }
+    
+    const data = await response.json();
+    return data.choices[0].message.content;
 }
 
 /**

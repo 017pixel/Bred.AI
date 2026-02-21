@@ -122,7 +122,7 @@
                 </div>
                 <div class="tab-content" id="api-keys-content">
                     <div class="settings-box">
-                        <h3>Gemini API-Schlüssel</h3>
+                        <h3>Google Gemini API-Schlüssel</h3>
                         <div id="api-key-container">
                             <input type="password" class="api-key-input" placeholder="Schlüssel 1">
                             <input type="password" class="api-key-input" placeholder="Schlüssel 2">
@@ -138,6 +138,24 @@
                                 <i class="fas fa-question-circle"></i> Wie erhalte ich einen Schlüssel?
                             </button>
                         </div>
+                    </div>
+                    
+                    <div class="settings-box" style="margin-top: 20px; border-top: 2px solid var(--accent-color); padding-top: 15px;">
+                        <h3>🔥 Cerebras API-Schlüssel</h3>
+                        <p style="font-size: 12px; color: #888; margin-bottom: 10px;">Kostenlos bei cloud.cerebras.ai</p>
+                        <input type="password" id="cerebras-api-key" placeholder="Cerebras API-Key" style="width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 8px; background: white; border: 1px solid var(--border-color);">
+                        <button onclick="saveProviderApiKeys()" class="modal-btn primary" style="width: 100%;">
+                            <i class="fas fa-save"></i> Cerebras-Key speichern
+                        </button>
+                    </div>
+                    
+                    <div class="settings-box" style="margin-top: 20px; border-top: 2px solid #76b900; padding-top: 15px;">
+                        <h3>🤖 Nvidia NIM API-Schlüssel</h3>
+                        <p style="font-size: 12px; color: #888; margin-bottom: 10px;">Kostenlos bei build.nvidia.com</p>
+                        <input type="password" id="nvidia-api-key" placeholder="Nvidia API-Key" style="width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 8px; background: white; border: 1px solid var(--border-color);">
+                        <button onclick="saveProviderApiKeys()" class="modal-btn primary" style="width: 100%;">
+                            <i class="fas fa-save"></i> Nvidia-Key speichern
+                        </button>
                     </div>
                 </div>
             </div>
