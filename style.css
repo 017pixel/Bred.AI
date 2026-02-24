@@ -5,13 +5,22 @@
     --text-primary: #1a1a1a;
     --text-secondary: #555555;
     --border-color: #e5e7eb;
-    
+
     /* Theme Colors - Dark */
     --dark-bg-primary: #1e1e1e;
     --dark-bg-secondary: #2a2a2a;
     --dark-text-primary: #e8e8e8;
     --dark-text-secondary: #b0b0b0;
     --dark-border-color: #3a3a3a;
+
+    /* Default Akzentfarbe (Grün) - wird bei data-accent-color="green" verwendet */
+    --primary-accent: #2d5a3d;
+    --primary-accent-light: #3d7a4f;
+    --primary-accent-lighter: #4d8a5f;
+    --primary-accent-dark: #1d4a2d;
+    --dark-primary-accent: #6fbb82;
+    --dark-primary-accent-light: #7fc792;
+    --dark-primary-accent-lighter: #8fd3a2;
 }
 
 /* --- AKZENTFARBEN (NEU) --- */
@@ -76,7 +85,7 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     margin: 0;
     padding: 0;
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
     min-height: 100vh;
     transition: all 0.3s ease;
 }

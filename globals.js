@@ -1,5 +1,3 @@
-// Muss ich noch beheben:  Anwendung konnte nicht initialisiert werden. Bitte neu laden. Fehler: document.getElementById(...) is null
-
 /**
  * Hier habe ich meine Sammlung von Gemini API-Keys hinterlegt. Sie sind komplett kostenlos. Wenn du sie klauen willst, wirst du dir dadurch keine Vorteile verschaffen, hohl dir einfach einen eigenen auf aistudio.google.com.
  * Durch das Wechseln dieser Schlüssel umgehe ich die Rate-Limits (Anfragen pro Minute/Tag) der API,
@@ -91,7 +89,7 @@ let topP = 0.95;
 
 // Sprachmodus
 let isVoiceModeActive = false;
-let speechRecognition;
+let speechRecognition = null;
 let voiceChatHistory = [];
 let isListening = false;
 let isBotSpeaking = false;
@@ -101,15 +99,14 @@ let germanVoices = [];
 let currentVoiceName = null;
 
 // DOM-Elemente, die häufig verwendet werden
-// REPARIERT: Elemente werden nur deklariert, nicht sofort zugewiesen.
-let voiceInterruptBtn;
-let voiceOverlay;
-let voiceStatus;
-let voiceTranscript;
-let voiceChatBtn;
-let textarea;
+// WICHTIG: Diese werden erst in DOMContentLoaded zugewiesen!
+let voiceInterruptBtn = null;
+let voiceOverlay = null;
+let voiceStatus = null;
+let voiceTranscript = null;
+let voiceChatBtn = null;
+let textarea = null;
 
 // Konstanten für die Anwendungslogik
 const MOBILE_SAFETY_DELAY = 400;
-
 const MAX_PROJECT_FILES = 10;
