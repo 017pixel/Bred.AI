@@ -2556,22 +2556,34 @@ function handleKeyPress(event) {
 /**
  * Öffnet oder schließt die Sidebar und steuert das Overlay auf Mobilgeräten.
  */
-function toggleSidebar() { 
+function toggleSidebar() {
+    // Verhindern, dass die Funktion zu schnell hintereinander aufgerufen wird
+    if (window.isTogglingSidebar) return;
+    window.isTogglingSidebar = true;
+
     const container = document.querySelector('.main-container');
-    if (!container) return;
+    if (!container) {
+        window.isTogglingSidebar = false;
+        return;
+    }
+
     container.classList.toggle('sidebar-collapsed');
     const isVisible = !container.classList.contains('sidebar-collapsed');
-    
+
     const hamburger = document.querySelector('.hamburger');
     if (hamburger) hamburger.classList.toggle('active', isVisible);
-    
+
     const sidebarToggle = document.querySelector('.sidebar-toggle');
     if (sidebarToggle) sidebarToggle.classList.toggle('active', isVisible);
-    
+
     if (window.innerWidth <= 768) {
         const overlay = document.querySelector('.sidebar-overlay');
         if (overlay) overlay.classList.toggle('active', isVisible);
     }
+
+    setTimeout(() => {
+        window.isTogglingSidebar = false;
+    }, 100);
 }
 
 /**
