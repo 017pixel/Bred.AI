@@ -2073,7 +2073,7 @@ async function sendMessage() {
     if (fileInput) fileInput.value = null;
     const uploadIcon = document.querySelector('#upload-button i');
     if (uploadIcon) uploadIcon.style.color = '#aaa';
-    
+
     adjustTextareaHeight();
     updateChatUI();
     showLoading();
@@ -2104,9 +2104,9 @@ async function sendMessage() {
                                             "Frage des Nutzers: ";
                 }
             }
-        
+
             let finalMessageForApi = internalKnowledgeContext + messageToSend;
-            
+
             if (modelInfo.provider === 'gemini') {
                 if (tempFile) {
                     botResponse = await sendGeminiMultimodalMessage(messageToSend, tempFile);
@@ -2131,36 +2131,16 @@ async function sendMessage() {
                 } else {
                     botResponse = await sendGeminiTextMessage(finalMessageForApi, modelInfo.id, historyForAPI);
                 }
-                        showSearchStatus("✅ Ergebnisse werden verarbeitet...");
-                    } catch (e) {
-                        showSearchStatus(`Fehler bei Websuche. Fahre ohne Suche fort.`);
-                        finalMessageForApi += `\n\n(Anweisung: Erwähne einen Fehler bei der Websuche.)`;
-                    }
-                    botResponse = await sendGeminiTextMessage(finalMessageForApi, modelInfo.id, historyForAPI);
-                } else {
-                    botResponse = await sendGeminiTextMessage(finalMessageForApi, modelInfo.id, historyForAPI);
-                }
             } else if (modelInfo.provider === 'cerebras') {
                 botResponse = await sendOpenAICompatibleMessage(finalMessageForApi, modelInfo, historyForAPI);
             } else if (modelInfo.provider === 'nvidia') {
                 botResponse = await sendOpenAICompatibleMessage(finalMessageForApi, modelInfo, historyForAPI);
             }
         }
-                        showSearchStatus("✅ Ergebnisse werden verarbeitet...");
-                    } catch (e) {
-                        showSearchStatus(`Fehler bei Websuche. Fahre ohne Suche fort.`);
-                        finalMessageForApi += `\n\n(Anweisung: Erwähne einen Fehler bei der Websuche.)`;
-                    }
-                    botResponse = await sendGeminiTextMessage(finalMessageForApi, modelInfo.id, historyForAPI);
-                } else {
-                    botResponse = await sendGeminiTextMessage(finalMessageForApi, modelInfo.id, historyForAPI);
-                }
-            }
-        }
-        
+
         const processedResponse = processBotResponse(botResponse);
         addMessage(processedResponse, 'bot');
-        await addToChatHistory(botResponse, 'bot'); 
+        await addToChatHistory(botResponse, 'bot');
     } catch (error) {
         console.error('API Error:', error);
         const errorMessage = `Entschuldigung, ein Fehler ist aufgetreten: ${error.message}`;
