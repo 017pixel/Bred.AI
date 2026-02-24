@@ -19,22 +19,42 @@ const CUSTOM_SEARCH_API_URL = "https://www.googleapis.com/customsearch/v1";
 
 /**
  * Verfügbare KI-Modelle aller Provider (Stand: Februar 2026)
- * Jedes Modell hat: id, name, emoji, provider, capabilities, rpm, rpd
+ * Basierend auf den offiziellen API-Dokumentationen
  */
 const MODELS = {
-    // Google Gemini Modelle (neueste 2.5 Serie)
-    "gemini-2.5-pro": {
-        "id": "gemini-2.5-pro-preview-03-25",
-        "name": "Gemini 2.5 Pro",
+    // Google Gemini Modelle (neueste 3er und 2.5er Serie)
+    "gemini-3-pro": {
+        "id": "gemini-3-pro",
+        "name": "Gemini 3 Pro",
         "emoji": "💎",
         "provider": "gemini",
         "capabilities": ["text", "vision", "search"],
         "rpm": 10,
         "rpd": 500,
-        "description": "Googles stärkstes Modell für komplexe Aufgaben"
+        "description": "Googles stärkstes Modell (Preview)"
+    },
+    "gemini-3-flash": {
+        "id": "gemini-3-flash",
+        "name": "Gemini 3 Flash",
+        "emoji": "⚡",
+        "provider": "gemini",
+        "capabilities": ["text", "vision", "search"],
+        "rpm": 15,
+        "rpd": 1000,
+        "description": "Schnelles Multimodal-Modell (Preview)"
+    },
+    "gemini-2.5-pro": {
+        "id": "gemini-2.5-pro",
+        "name": "Gemini 2.5 Pro",
+        "emoji": "🔷",
+        "provider": "gemini",
+        "capabilities": ["text", "vision", "search"],
+        "rpm": 10,
+        "rpd": 500,
+        "description": "Starkes Modell für komplexe Aufgaben"
     },
     "gemini-2.5-flash": {
-        "id": "gemini-2.5-flash-preview-03-25",
+        "id": "gemini-2.5-flash",
         "name": "Gemini 2.5 Flash",
         "emoji": "⚡",
         "provider": "gemini",
@@ -43,15 +63,15 @@ const MODELS = {
         "rpd": 1000,
         "description": "Schnelles Modell für alltägliche Aufgaben"
     },
-    "gemini-2.0-flash": {
-        "id": "gemini-2.0-flash",
-        "name": "Gemini 2.0 Flash",
-        "emoji": "🚀",
+    "gemini-2.5-flash-lite": {
+        "id": "gemini-2.5-flash-lite",
+        "name": "Gemini 2.5 Flash Lite",
+        "emoji": "🪶",
         "provider": "gemini",
-        "capabilities": ["text", "vision", "search"],
-        "rpm": 15,
-        "rpd": 1000,
-        "description": "Stabiles Flash-Modell"
+        "capabilities": ["text", "search"],
+        "rpm": 20,
+        "rpd": 2000,
+        "description": "Leichtes, schnelles Modell"
     },
 
     // Groq Modelle (ultraschnelle Inference)
@@ -75,18 +95,28 @@ const MODELS = {
         "rpd": 14400,
         "description": "Extrem schnelles kleines Modell"
     },
-    "groq-deepseek-r1": {
-        "id": "deepseek-r1-distill-llama-70b",
-        "name": "DeepSeek R1",
-        "emoji": "🧠",
+    "groq-llama-4-scout": {
+        "id": "meta-llama/llama-4-scout-17b-16e-instruct",
+        "name": "Llama 4 Scout",
+        "emoji": "🔮",
         "provider": "groq",
         "capabilities": ["text"],
         "rpm": 30,
         "rpd": 14400,
-        "description": "Reasoning-Modell für komplexe Aufgaben"
+        "description": "Meta's Llama 4 (Preview)"
+    },
+    "groq-qwen3": {
+        "id": "qwen/qwen3-32b",
+        "name": "Qwen 3 32B",
+        "emoji": "🐉",
+        "provider": "groq",
+        "capabilities": ["text"],
+        "rpm": 30,
+        "rpd": 14400,
+        "description": "Alibabas Qwen 3 (Preview)"
     },
 
-    // Cerebras Modelle (Fallback-Provider)
+    // Cerebras Modelle (Fallback-Provider - extrem schnell)
     "cerebras-llama-3.3-70b": {
         "id": "llama-3.3-70b",
         "name": "Llama 3.3 70B",
@@ -97,21 +127,31 @@ const MODELS = {
         "rpd": 50000,
         "description": "Schnelles Modell für Fallback"
     },
+    "cerebras-llama-3.1-8b": {
+        "id": "llama-3.1-8b",
+        "name": "Llama 3.1 8B",
+        "emoji": "⚡",
+        "provider": "cerebras",
+        "capabilities": ["text"],
+        "rpm": 100,
+        "rpd": 50000,
+        "description": "Ultraschnelles kleines Modell"
+    },
 
-    // NVIDIA NIM Modelle
-    "nvidia-llama-3.1-70b": {
-        "id": "meta/llama-3.1-70b-instruct",
-        "name": "Llama 3.1 70B",
+    // NVIDIA NIM Modelle (viele Top-Modelle verfügbar)
+    "nvidia-llama-3.3-70b": {
+        "id": "meta/llama-3.3-70b-instruct",
+        "name": "Llama 3.3 70B",
         "emoji": "🤖",
         "provider": "nvidia",
         "capabilities": ["text"],
         "rpm": 100,
         "rpd": 5000,
-        "description": "Meta's starkes Open-Source-Modell"
+        "description": "Meta's neuestes Open-Source-Modell"
     },
-    "nvidia-deepseek-v3": {
-        "id": "deepseek-ai/deepseek-v3",
-        "name": "DeepSeek V3",
+    "nvidia-deepseek-v3.2": {
+        "id": "deepseek-ai/deepseek-v3.2",
+        "name": "DeepSeek V3.2",
         "emoji": "🌟",
         "provider": "nvidia",
         "capabilities": ["text"],
@@ -119,15 +159,55 @@ const MODELS = {
         "rpd": 5000,
         "description": "Chinesisches Top-Modell für Reasoning"
     },
-    "nvidia-qwen-2.5-72b": {
-        "id": "qwen/qwen2.5-72b-instruct",
-        "name": "Qwen 2.5 72B",
-        "emoji": "🐉",
+    "nvidia-deepseek-r1": {
+        "id": "deepseek-ai/deepseek-r1-distill-qwen-32b",
+        "name": "DeepSeek R1",
+        "emoji": "🧠",
         "provider": "nvidia",
         "capabilities": ["text"],
         "rpm": 100,
         "rpd": 5000,
-        "description": "Alibabas starkes Modell"
+        "description": "Reasoning-Modell für komplexe Aufgaben"
+    },
+    "nvidia-qwen3-235b": {
+        "id": "qwen/qwen3-235b-a22b",
+        "name": "Qwen 3 235B",
+        "emoji": "🐲",
+        "provider": "nvidia",
+        "capabilities": ["text"],
+        "rpm": 100,
+        "rpd": 5000,
+        "description": "Alibabas größtes Modell"
+    },
+    "nvidia-qwen3-coder": {
+        "id": "qwen/qwen3-coder-480b-a35b-instruct",
+        "name": "Qwen 3 Coder 480B",
+        "emoji": "💻",
+        "provider": "nvidia",
+        "capabilities": ["text"],
+        "rpm": 100,
+        "rpd": 5000,
+        "description": "Spezialisiert auf Coding"
+    },
+    "nvidia-mistral-large": {
+        "id": "mistralai/mistral-large",
+        "name": "Mistral Large",
+        "emoji": "🌫️",
+        "provider": "nvidia",
+        "capabilities": ["text"],
+        "rpm": 100,
+        "rpd": 5000,
+        "description": "Mistrals stärkstes Modell"
+    },
+    "nvidia-mixtral-8x22b": {
+        "id": "mistralai/mixtral-8x22b-instruct",
+        "name": "Mixtral 8x22B",
+        "emoji": "🌀",
+        "provider": "nvidia",
+        "capabilities": ["text"],
+        "rpm": 100,
+        "rpd": 5000,
+        "description": "Moiré-Architektur von Mistral"
     }
 };
 
@@ -186,7 +266,7 @@ let currentProfileId = null;
 
 // Aktuelle Chat-Konfiguration
 let currentBot = 'bred';
-let currentModel = 'gemini-2.5-flash'; // Standard auf neuestes Flash-Modell
+let currentModel = 'gemini-2.5-flash'; // Standard: Schnelles, stabiles Gemini
 let activeProjectId = null;
 let currentSessionId = null;
 
