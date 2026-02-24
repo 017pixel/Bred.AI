@@ -122,40 +122,63 @@
                 </div>
                 <div class="tab-content" id="api-keys-content">
                     <div class="settings-box">
-                        <h3>Google Gemini API-Schlüssel</h3>
-                        <div id="api-key-container">
-                            <input type="password" class="api-key-input" placeholder="Schlüssel 1">
-                            <input type="password" class="api-key-input" placeholder="Schlüssel 2">
-                            <input type="password" class="api-key-input" placeholder="Schlüssel 3">
-                            <input type="password" class="api-key-input" placeholder="Schlüssel 4">
-                            <input type="password" class="api-key-input" placeholder="Schlüssel 5">
+                        <h3>🔑 API-Schlüssel verwalten</h3>
+                        <p style="font-size: 13px; color: #666; margin-bottom: 15px;">
+                            Trage deine API-Schlüssel ein. Jeder Provider bietet kostenlose Kontingente.
+                        </p>
+
+                        <!-- Gemini -->
+                        <div style="margin-bottom: 20px; padding: 15px; border: 2px solid #4285f4; border-radius: 10px; background: linear-gradient(135deg, rgba(66,133,244,0.05) 0%, rgba(66,133,244,0.1) 100%);">
+                            <h4 style="color: #4285f4; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                                <i class="fas fa-gem"></i> Google Gemini
+                            </h4>
+                            <p style="font-size: 12px; color: #888; margin-bottom: 10px;">
+                                Kostenlos bei <a href="https://aistudio.google.com/apikey" target="_blank" style="color: #4285f4;">aistudio.google.com</a>
+                            </p>
+                            <input type="password" id="gemini-api-key" placeholder="Gemini API-Key" style="width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 8px; background: white; border: 1px solid var(--border-color);">
                         </div>
+
+                        <!-- Groq -->
+                        <div style="margin-bottom: 20px; padding: 15px; border: 2px solid #f97316; border-radius: 10px; background: linear-gradient(135deg, rgba(249,115,22,0.05) 0%, rgba(249,115,22,0.1) 100%);">
+                            <h4 style="color: #f97316; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                                <i class="fas fa-bolt"></i> Groq (Ultraschnell)
+                            </h4>
+                            <p style="font-size: 12px; color: #888; margin-bottom: 10px;">
+                                Kostenlos bei <a href="https://console.groq.com/keys" target="_blank" style="color: #f97316;">console.groq.com</a>
+                            </p>
+                            <input type="password" id="groq-api-key" placeholder="Groq API-Key" style="width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 8px; background: white; border: 1px solid var(--border-color);">
+                        </div>
+
+                        <!-- Cerebras -->
+                        <div style="margin-bottom: 20px; padding: 15px; border: 2px solid #dc2626; border-radius: 10px; background: linear-gradient(135deg, rgba(220,38,38,0.05) 0%, rgba(220,38,38,0.1) 100%);">
+                            <h4 style="color: #dc2626; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                                <i class="fas fa-fire"></i> Cerebras (Fallback)
+                            </h4>
+                            <p style="font-size: 12px; color: #888; margin-bottom: 10px;">
+                                Kostenlos bei <a href="https://cloud.cerebras.ai/" target="_blank" style="color: #dc2626;">cloud.cerebras.ai</a>
+                            </p>
+                            <input type="password" id="cerebras-api-key" placeholder="Cerebras API-Key" style="width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 8px; background: white; border: 1px solid var(--border-color);">
+                        </div>
+
+                        <!-- Nvidia -->
+                        <div style="margin-bottom: 20px; padding: 15px; border: 2px solid #76b900; border-radius: 10px; background: linear-gradient(135deg, rgba(118,185,0,0.05) 0%, rgba(118,185,0,0.1) 100%);">
+                            <h4 style="color: #76b900; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                                <i class="fas fa-microchip"></i> Nvidia NIM
+                            </h4>
+                            <p style="font-size: 12px; color: #888; margin-bottom: 10px;">
+                                Kostenlos bei <a href="https://build.nvidia.com/" target="_blank" style="color: #76b900;">build.nvidia.com</a>
+                            </p>
+                            <input type="password" id="nvidia-api-key" placeholder="Nvidia API-Key" style="width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 8px; background: white; border: 1px solid var(--border-color);">
+                        </div>
+
                         <div class="modal-actions" style="margin-top: 15px; flex-direction: column; gap: 10px;">
-                            <button onclick="saveApiKeys()" class="modal-btn primary" style="width: 100%;">
-                                <i class="fas fa-save"></i> Schlüssel speichern
+                            <button onclick="saveProviderApiKeys()" class="modal-btn primary" style="width: 100%;">
+                                <i class="fas fa-save"></i> Alle API-Schlüssel speichern
                             </button>
                             <button onclick="openApiKeyHelpModal()" class="modal-btn secondary" style="width: 100%;">
-                                <i class="fas fa-question-circle"></i> Wie erhalte ich einen Schlüssel?
+                                <i class="fas fa-question-circle"></i> Wie erhalte ich API-Schlüssel?
                             </button>
                         </div>
-                    </div>
-                    
-                    <div class="settings-box" style="margin-top: 20px; border-top: 2px solid var(--accent-color); padding-top: 15px;">
-                        <h3>🔥 Cerebras API-Schlüssel</h3>
-                        <p style="font-size: 12px; color: #888; margin-bottom: 10px;">Kostenlos bei cloud.cerebras.ai</p>
-                        <input type="password" id="cerebras-api-key" placeholder="Cerebras API-Key" style="width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 8px; background: white; border: 1px solid var(--border-color);">
-                        <button onclick="saveProviderApiKeys()" class="modal-btn primary" style="width: 100%;">
-                            <i class="fas fa-save"></i> Cerebras-Key speichern
-                        </button>
-                    </div>
-                    
-                    <div class="settings-box" style="margin-top: 20px; border-top: 2px solid #76b900; padding-top: 15px;">
-                        <h3>🤖 Nvidia NIM API-Schlüssel</h3>
-                        <p style="font-size: 12px; color: #888; margin-bottom: 10px;">Kostenlos bei build.nvidia.com</p>
-                        <input type="password" id="nvidia-api-key" placeholder="Nvidia API-Key" style="width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 8px; background: white; border: 1px solid var(--border-color);">
-                        <button onclick="saveProviderApiKeys()" class="modal-btn primary" style="width: 100%;">
-                            <i class="fas fa-save"></i> Nvidia-Key speichern
-                        </button>
                     </div>
                 </div>
             </div>

@@ -6,32 +6,146 @@
 // ENTFERNT: Die hartcodierten API-Schlüssel wurden aus Sicherheitsgründen entfernt.
 // const GEMINI_API_KEYS = [ ... ];
 
-// API-Endpunkte und Konfigurationen
+/**
+ * API-Endpunkte und Konfigurationen für alle Provider
+ */
 const GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models/";
+const GROQ_BASE_URL = "https://api.groq.com/openai/v1";
 const CEREBRAS_BASE_URL = "https://api.cerebras.ai/v1";
 const NVIDIA_BASE_URL = "https://integrate.api.nvidia.com/v1";
-const CUSTOM_SEARCH_API_KEY = "AIzaSyBsWxcHKSM6wWIhyc5VyCBIVJ5uQUyJyyQ"; // TODO!!!!!!! DAS AUCH NOCH FIXEN UND SELBER EINSETZBAR MACHEN!!!!
+const CUSTOM_SEARCH_API_KEY = "AIzaSyBsWxcHKSM6wWIhyc5VyCBIVJ5uQUyJyyQ";
 const CUSTOM_SEARCH_ENGINE_ID = "64c5966cc634a4e06";
 const CUSTOM_SEARCH_API_URL = "https://www.googleapis.com/customsearch/v1";
 
 /**
- * In diesem Objekt habe ich die verfügbaren KI-Modelle konfiguriert.
- * Jedes Modell hat eine ID, einen Anzeigenamen, ein Emoji und Infos zu seinen Fähigkeiten
- * (z.B. "vision" für Bilderkennung) sowie die spezifischen Rate-Limits (RPM/RPD).
+ * Verfügbare KI-Modelle aller Provider (Stand: Februar 2026)
+ * Jedes Modell hat: id, name, emoji, provider, capabilities, rpm, rpd
  */
 const MODELS = {
-    "gemini": { "id": "gemini-1.5-flash-latest", "name": "Gemini", "emoji": "💎", "provider": "gemini", "capabilities": ["text", "vision", "search"], "rpm": 15, "rpd": 1000 },
-    "gemini-pro": { "id": "gemini-pro", "name": "Gemini Pro", "emoji": "💡", "provider": "gemini", "capabilities": ["text", "search"], "rpm": 10, "rpd": 200 },
-    "gemini-check": { "id": "gemini-1.5-flash-latest", "provider": "gemini", "rpm": 15, "rpd": 1000 },
-    // Cerebras Modelle
-    "cerebras-llama-3.3-70b": { "id": "llama-3.3-70b", "name": "Llama 3.3 70B", "emoji": "🔥", "provider": "cerebras", "capabilities": ["text"], "rpm": 100, "rpd": 10000 },
-    "cerebras-llama-3.1-8b": { "id": "llama-3.1-8b", "name": "Llama 3.1 8B", "emoji": "🔥", "provider": "cerebras", "capabilities": ["text"], "rpm": 100, "rpd": 10000 },
-    // Nvidia NIM Modelle
-    "nvidia-llama3-chatqa-70b": { "id": "nvidia/llama3-chatqa-1.5-70b", "name": "Llama 3 ChatQA 70B", "emoji": "🤖", "provider": "nvidia", "capabilities": ["text"], "rpm": 100, "rpd": 5000 },
-    "nvidia-llama3-chatqa-8b": { "id": "nvidia/llama3-chatqa-1.5-8b", "name": "Llama 3 ChatQA 8B", "emoji": "🤖", "provider": "nvidia", "capabilities": ["text"], "rpm": 100, "rpd": 5000 },
-    "nvidia-llama-3.1-70b": { "id": "meta/llama-3.1-70b-instruct", "name": "Llama 3.1 70B", "emoji": "🤖", "provider": "nvidia", "capabilities": ["text"], "rpm": 100, "rpd": 5000 },
-    "nvidia-qwen2-72b": { "id": "qwen/qwen2-72b-instruct", "name": "Qwen 2 72B", "emoji": "🤖", "provider": "nvidia", "capabilities": ["text"], "rpm": 100, "rpd": 5000 }
+    // Google Gemini Modelle (neueste 2.5 Serie)
+    "gemini-2.5-pro": {
+        "id": "gemini-2.5-pro-preview-03-25",
+        "name": "Gemini 2.5 Pro",
+        "emoji": "💎",
+        "provider": "gemini",
+        "capabilities": ["text", "vision", "search"],
+        "rpm": 10,
+        "rpd": 500,
+        "description": "Googles stärkstes Modell für komplexe Aufgaben"
+    },
+    "gemini-2.5-flash": {
+        "id": "gemini-2.5-flash-preview-03-25",
+        "name": "Gemini 2.5 Flash",
+        "emoji": "⚡",
+        "provider": "gemini",
+        "capabilities": ["text", "vision", "search"],
+        "rpm": 15,
+        "rpd": 1000,
+        "description": "Schnelles Modell für alltägliche Aufgaben"
+    },
+    "gemini-2.0-flash": {
+        "id": "gemini-2.0-flash",
+        "name": "Gemini 2.0 Flash",
+        "emoji": "🚀",
+        "provider": "gemini",
+        "capabilities": ["text", "vision", "search"],
+        "rpm": 15,
+        "rpd": 1000,
+        "description": "Stabiles Flash-Modell"
+    },
+
+    // Groq Modelle (ultraschnelle Inference)
+    "groq-llama-3.3-70b": {
+        "id": "llama-3.3-70b-versatile",
+        "name": "Llama 3.3 70B",
+        "emoji": "🚀",
+        "provider": "groq",
+        "capabilities": ["text"],
+        "rpm": 30,
+        "rpd": 14400,
+        "description": "Meta's neuestes Modell auf Groq"
+    },
+    "groq-llama-3.1-8b": {
+        "id": "llama-3.1-8b-instant",
+        "name": "Llama 3.1 8B",
+        "emoji": "⚡",
+        "provider": "groq",
+        "capabilities": ["text"],
+        "rpm": 30,
+        "rpd": 14400,
+        "description": "Extrem schnelles kleines Modell"
+    },
+    "groq-deepseek-r1": {
+        "id": "deepseek-r1-distill-llama-70b",
+        "name": "DeepSeek R1",
+        "emoji": "🧠",
+        "provider": "groq",
+        "capabilities": ["text"],
+        "rpm": 30,
+        "rpd": 14400,
+        "description": "Reasoning-Modell für komplexe Aufgaben"
+    },
+
+    // Cerebras Modelle (Fallback-Provider)
+    "cerebras-llama-3.3-70b": {
+        "id": "llama-3.3-70b",
+        "name": "Llama 3.3 70B",
+        "emoji": "🔥",
+        "provider": "cerebras",
+        "capabilities": ["text"],
+        "rpm": 100,
+        "rpd": 50000,
+        "description": "Schnelles Modell für Fallback"
+    },
+
+    // NVIDIA NIM Modelle
+    "nvidia-llama-3.1-70b": {
+        "id": "meta/llama-3.1-70b-instruct",
+        "name": "Llama 3.1 70B",
+        "emoji": "🤖",
+        "provider": "nvidia",
+        "capabilities": ["text"],
+        "rpm": 100,
+        "rpd": 5000,
+        "description": "Meta's starkes Open-Source-Modell"
+    },
+    "nvidia-deepseek-v3": {
+        "id": "deepseek-ai/deepseek-v3",
+        "name": "DeepSeek V3",
+        "emoji": "🌟",
+        "provider": "nvidia",
+        "capabilities": ["text"],
+        "rpm": 100,
+        "rpd": 5000,
+        "description": "Chinesisches Top-Modell für Reasoning"
+    },
+    "nvidia-qwen-2.5-72b": {
+        "id": "qwen/qwen2.5-72b-instruct",
+        "name": "Qwen 2.5 72B",
+        "emoji": "🐉",
+        "provider": "nvidia",
+        "capabilities": ["text"],
+        "rpm": 100,
+        "rpd": 5000,
+        "description": "Alibabas starkes Modell"
+    }
 };
+
+/**
+ * Provider-Reihenfolge für automatisches Fallback
+ * Bei Error/Timeout wird zum nächsten Provider gewechselt
+ */
+const PROVIDER_FALLBACK_ORDER = ['gemini', 'groq', 'nvidia', 'cerebras'];
+
+/**
+ * Fallback-Modell (wird bei Fehlern verwendet)
+ */
+const FALLBACK_MODEL = 'cerebras-llama-3.3-70b';
+
+/**
+ * Timeout für API-Aufrufe in Millisekunden
+ */
+const API_TIMEOUT_MS = 30000; // 30 Sekunden
 
 /**
  * Diese Schlüssel habe ich definiert, um konsistente Bezeichnungen für die Speicherung
@@ -39,8 +153,7 @@ const MODELS = {
  */
 const SETTING_KEYS = {
     LAST_PROFILE: 'lastActiveProfile',
-    API_KEYS: 'userApiKeys',
-    PROVIDER_API_KEYS: 'providerApiKeys',
+    API_KEYS: 'providerApiKeys', // NEU: Provider-basierte Keys
     ACCENT_COLOR: 'accentColor',
     THEME: 'theme',
     AUTO_SEARCH: 'autoSearch',
@@ -54,11 +167,18 @@ const SETTING_KEYS = {
 // --- GLOBALE ZUSTANDS-VARIABLEN ---
 // Diese Variablen speichern den aktuellen Zustand der Anwendung.
 
-// API-Key Management
-let userApiKeys = []; // NEU: Wird aus der DB geladen
-let providerApiKeys = { cerebras: '', nvidia: '' }; // API-Keys pro Provider
-let apiKeyUsage = {};
-let currentApiKeyIndex = 0;
+// API-Key Management (NEU: Ein Key pro Provider, kein Rotieren mehr)
+let providerApiKeys = {
+    gemini: '',
+    groq: '',
+    cerebras: '',
+    nvidia: ''
+};
+
+// Fallback-Status
+let isFallbackActive = false;
+let fallbackReason = '';
+let originalModel = null;
 
 // Profildaten
 let profiles = {};
@@ -66,7 +186,7 @@ let currentProfileId = null;
 
 // Aktuelle Chat-Konfiguration
 let currentBot = 'bred';
-let currentModel = 'gemini';
+let currentModel = 'gemini-2.5-flash'; // Standard auf neuestes Flash-Modell
 let activeProjectId = null;
 let currentSessionId = null;
 

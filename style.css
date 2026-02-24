@@ -1996,3 +1996,31 @@ input:checked + .slider:before {
     color: #fefce8;
     border-color: #ca8a04;
 }
+
+/* --- NEU: Fallback-Info Styles --- */
+.fallback-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 15px;
+    margin: 10px 20px;
+    background: rgba(251, 191, 36, 0.1);
+    border: 1px solid rgba(251, 191, 36, 0.3);
+    border-radius: 8px;
+    font-size: 0.85rem;
+    color: #b45309;
+}
+
+[data-theme="dark"] .fallback-info {
+    background: rgba(251, 191, 36, 0.15);
+    color: #fcd34d;
+}
+
+.fallback-info i {
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.fallback-info span {
+    flex: 1;
+}

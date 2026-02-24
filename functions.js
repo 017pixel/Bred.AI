@@ -101,61 +101,22 @@ const dbHelper = {
 };
 
 /**
- * NEU: Lädt die vom Benutzer gespeicherten API-Schlüssel aus der IndexedDB.
- */
-async function loadApiKeys() {
-    const storedKeys = await dbHelper.get(dbHelper.STORES.APP_STATE, SETTING_KEYS.API_KEYS);
-    if (storedKeys && Array.isArray(storedKeys.value)) {
-        userApiKeys = storedKeys.value;
-        console.log(`[API Key] ${userApiKeys.length} Schlüssel geladen.`);
-        
-        // Fülle die Input-Felder mit den geladenen Schlüsseln
-        const keyInputs = document.querySelectorAll('.api-key-input');
-        keyInputs.forEach((input, index) => {
-            if (userApiKeys[index]) {
-                input.value = userApiKeys[index];
-            } else {
-                input.value = '';
-            }
-        });
-    } else {
-        console.log("[API Key] Keine gespeicherten Schlüssel gefunden.");
-    }
-}
-
-/**
- * NEU: Speichert die vom Benutzer eingegebenen API-Schlüssel in der IndexedDB.
- */
-async function saveApiKeys() {
-    const keyInputs = document.querySelectorAll('.api-key-input');
-    const keys = Array.from(keyInputs)
-        .map(input => input.value.trim())
-        .filter(key => key !== ''); // Nur nicht-leere Schlüssel speichern
-
-    if (keys.length === 0) {
-        showNotification("Bitte gib mindestens einen API-Schlüssel ein.", 'error');
-        return;
-    }
-
-    userApiKeys = keys;
-    await dbHelper.save(dbHelper.STORES.APP_STATE, { key: SETTING_KEYS.API_KEYS, value: userApiKeys });
-    await initializeApiKeyUsage(); // Key-Nutzungs-Tracking neu initialisieren
-    showNotification(`Erfolgreich ${userApiKeys.length} API-Schlüssel gespeichert!`, 'info');
-    checkAndShowApiKeyWarning(); // Warnung entfernen und Chat freischalten
-}
-
-/**
  * NEU: Lädt die Provider-spezifischen API-Schlüssel aus der IndexedDB.
  */
 async function loadProviderApiKeys() {
-    const storedKeys = await dbHelper.get(dbHelper.STORES.APP_STATE, SETTING_KEYS.PROVIDER_API_KEYS);
+    const storedKeys = await dbHelper.get(dbHelper.STORES.APP_STATE, SETTING_KEYS.API_KEYS);
     if (storedKeys && storedKeys.value) {
         providerApiKeys = storedKeys.value;
         console.log("[Provider API Key] Geladen:", providerApiKeys);
-        
-        // Fülle die Input-Felder
+
+        // Fülle die Input-Felder für alle Provider
+        const geminiInput = document.getElementById('gemini-api-key');
+        const groqInput = document.getElementById('groq-api-key');
         const cerebrasInput = document.getElementById('cerebras-api-key');
         const nvidiaInput = document.getElementById('nvidia-api-key');
+
+        if (geminiInput && providerApiKeys.gemini) geminiInput.value = providerApiKeys.gemini;
+        if (groqInput && providerApiKeys.groq) groqInput.value = providerApiKeys.groq;
         if (cerebrasInput && providerApiKeys.cerebras) cerebrasInput.value = providerApiKeys.cerebras;
         if (nvidiaInput && providerApiKeys.nvidia) nvidiaInput.value = providerApiKeys.nvidia;
     }
@@ -165,16 +126,21 @@ async function loadProviderApiKeys() {
  * NEU: Speichert die Provider-spezifischen API-Schlüssel in der IndexedDB.
  */
 async function saveProviderApiKeys() {
+    const geminiInput = document.getElementById('gemini-api-key');
+    const groqInput = document.getElementById('groq-api-key');
     const cerebrasInput = document.getElementById('cerebras-api-key');
     const nvidiaInput = document.getElementById('nvidia-api-key');
-    
+
     providerApiKeys = {
+        gemini: geminiInput ? geminiInput.value.trim() : '',
+        groq: groqInput ? groqInput.value.trim() : '',
         cerebras: cerebrasInput ? cerebrasInput.value.trim() : '',
         nvidia: nvidiaInput ? nvidiaInput.value.trim() : ''
     };
-    
-    await dbHelper.save(dbHelper.STORES.APP_STATE, { key: SETTING_KEYS.PROVIDER_API_KEYS, value: providerApiKeys });
-    showNotification('Provider API-Schlüssel gespeichert!', 'info');
+
+    await dbHelper.save(dbHelper.STORES.APP_STATE, { key: SETTING_KEYS.API_KEYS, value: providerApiKeys });
+    showNotification('API-Schlüssel gespeichert!', 'info');
+    checkAndShowApiKeyWarning();
 }
 
 /**
@@ -188,99 +154,88 @@ function openApiKeyHelpModal() {
 }
 
 /**
- * Hier initialisiere ich das API-Key-Nutzungs-Tracking.
- * Ich lade die gespeicherten Nutzungsdaten aus der DB und setze die Zähler für den aktuellen Tag zurück,
- * falls ein neuer Tag begonnen hat. Das ist entscheidend für das RPD-Limit (Requests Per Day).
- * MODIFIZIERT: Arbeitet jetzt mit der dynamischen `userApiKeys`-Liste.
+ * Prüft, ob ein API-Key für den aktuellen Provider verfügbar ist
  */
-async function initializeApiKeyUsage() {
-    if (userApiKeys.length === 0) {
-        console.warn("[API Key] Keine Benutzer-API-Schlüssel konfiguriert. Key-Management übersprungen.");
-        apiKeyUsage = {};
-        return;
-    }
-
-    const today = new Date().toISOString().slice(0, 10);
-    const storedUsage = await dbHelper.get(dbHelper.STORES.API_USAGE, 'geminiApiUsage');
-    let loadedUsage = storedUsage ? storedUsage.value : {};
-
-    const newApiKeyUsage = {};
-
-    userApiKeys.forEach((key, index) => {
-        if (loadedUsage[index]) {
-            const keyUsage = loadedUsage[index];
-            if (keyUsage.rpd_date !== today) {
-                keyUsage.rpd_date = today;
-                keyUsage.rpd_count = 0;
-            }
-            newApiKeyUsage[index] = keyUsage;
-        } else {
-            newApiKeyUsage[index] = {
-                rpm: [],
-                rpd_count: 0,
-                rpd_date: today
-            };
-        }
-    });
-
-    apiKeyUsage = newApiKeyUsage;
-    await dbHelper.save(dbHelper.STORES.API_USAGE, { key: 'geminiApiUsage', value: apiKeyUsage });
-    console.log("[API Key] Initialisierung des Key-Managements abgeschlossen.", apiKeyUsage);
+function hasApiKeyForProvider(provider) {
+    const key = providerApiKeys[provider];
+    return key && key.length > 0;
 }
 
 /**
- * Diese Funktion ist das Herzstück meines Key-Rotations-Systems.
- * Sie sucht den nächsten verfügbaren API-Key, der weder sein RPM- (Requests Per Minute)
- * noch sein RPD-Limit (Requests Per Day) erreicht hat.
- * Wenn alle Keys am Limit sind, wirft sie einen Fehler.
- * MODIFIZIERT: Arbeitet jetzt mit der dynamischen `userApiKeys`-Liste.
+ * Gibt den API-Key für den aktuellen Provider zurück
  */
-async function getNextAvailableApiKey(modelId) {
-    if (userApiKeys.length === 0) {
-        throw new Error("Kein Gemini API-Schlüssel konfiguriert. Bitte füge einen Schlüssel in der Seitenleiste unter 'API-Schlüssel' hinzu.");
-    }
+function getApiKeyForProvider(provider) {
+    return providerApiKeys[provider] || '';
+}
 
-    const modelObject = Object.values(MODELS).find(m => m.id === modelId);
-    if (!modelObject || modelObject.provider !== 'gemini') {
-        return "not_needed_for_this_provider";
-    }
+/**
+ * NEU: Fallback-System - Wechselt zum nächsten verfügbaren Provider
+ */
+async function getNextAvailableProvider(failedProvider) {
+    const currentIndex = PROVIDER_FALLBACK_ORDER.indexOf(failedProvider);
 
-    const rpmLimit = modelObject.rpm;
-    const rpdLimit = modelObject.rpd;
-    const now = Date.now();
-    const today = new Date().toISOString().slice(0, 10);
-    
-    for (let i = 0; i < userApiKeys.length; i++) {
-        const keyIndexToCheck = (currentApiKeyIndex + i) % userApiKeys.length;
-        let usage = apiKeyUsage[keyIndexToCheck];
-
-        if (!usage) {
-            console.error(`[API Key] Kritischer Fehler: Keine Nutzungsdaten für Key ${keyIndexToCheck}. Re-initialisiere.`);
-            await initializeApiKeyUsage();
-            usage = apiKeyUsage[keyIndexToCheck];
-        }
-
-        if (usage.rpd_date !== today) {
-            usage.rpd_date = today;
-            usage.rpd_count = 0;
-        }
-
-        usage.rpm = usage.rpm.filter(timestamp => now - timestamp < 60000);
-
-        const isRpmOk = usage.rpm.length < (rpmLimit - 1);
-        const isRpdOk = usage.rpd_count < (rpdLimit - 1);
-
-        if (isRpmOk && isRpdOk) {
-            usage.rpm.push(now);
-            usage.rpd_count++;
-            currentApiKeyIndex = (keyIndexToCheck + 1) % userApiKeys.length;
-            
-            await dbHelper.save(dbHelper.STORES.API_USAGE, { key: 'geminiApiUsage', value: apiKeyUsage });
-
-            return userApiKeys[keyIndexToCheck];
+    for (let i = 1; i < PROVIDER_FALLBACK_ORDER.length; i++) {
+        const nextProvider = PROVIDER_FALLBACK_ORDER[(currentIndex + i) % PROVIDER_FALLBACK_ORDER.length];
+        if (hasApiKeyForProvider(nextProvider)) {
+            return nextProvider;
         }
     }
-    throw new Error(`Alle ${userApiKeys.length} Gemini API-Keys haben ihre Rate-Limits erreicht.`);
+
+    // Wenn kein Provider verfügbar ist, versuche Cerebras als letzten Ausweg
+    if (hasApiKeyForProvider('cerebras')) {
+        return 'cerebras';
+    }
+
+    return null;
+}
+
+/**
+ * Aktiviert den Fallback-Modus und informiert den User
+ */
+function activateFallback(reason, fromModel) {
+    isFallbackActive = true;
+    fallbackReason = reason;
+    originalModel = currentModel;
+    currentModel = FALLBACK_MODEL;
+
+    console.log(`[Fallback] Aktiviert: ${reason}, von ${fromModel} zu ${FALLBACK_MODEL}`);
+
+    // Fallback-Info im Chat anzeigen
+    showFallbackInfo(reason);
+}
+
+/**
+ * Zeigt Fallback-Info im Chat an
+ */
+function showFallbackInfo(reason) {
+    const chatContainer = document.getElementById('chat-container');
+    if (!chatContainer) return;
+
+    const fallbackInfo = document.createElement('div');
+    fallbackInfo.className = 'fallback-info';
+    fallbackInfo.innerHTML = `
+        <i class="fas fa-exclamation-triangle"></i>
+        <span>Automatischer Wechsel zu ${MODELS[FALLBACK_MODEL].name} wegen: ${reason}</span>
+    `;
+
+    chatContainer.appendChild(fallbackInfo);
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+}
+
+/**
+ * Deaktiviert den Fallback-Modus
+ */
+function deactivateFallback() {
+    if (originalModel && MODELS[originalModel]) {
+        currentModel = originalModel;
+        originalModel = null;
+    }
+    isFallbackActive = false;
+    fallbackReason = '';
+
+    // Fallback-Infos ausblenden
+    const fallbackInfos = document.querySelectorAll('.fallback-info');
+    fallbackInfos.forEach(info => info.remove());
 }
 
 /**
@@ -378,9 +333,7 @@ function showNotification(message, type = 'info') {
  */
 async function initializeSystem() {
     await dbHelper.init();
-    await loadApiKeys(); // NEU
-    await initializeApiKeyUsage();
-    await loadProviderApiKeys(); // NEU: Lade Provider-API-Keys
+    await loadProviderApiKeys(); // Lade Provider-API-Keys
     preprocessKnowledgeBase();
     await loadProfiles();
     loadProfileData();
@@ -389,7 +342,7 @@ async function initializeSystem() {
     initializeSpeechAPI();
     await loadAndCacheVoices();
     await loadVoiceSettings();
-    checkAndShowApiKeyWarning(); // NEU: Am Ende der Initialisierung prüfen
+    checkAndShowApiKeyWarning(); // Prüfe API-Keys am Ende
 }
 
 /**
@@ -462,25 +415,32 @@ function checkAndShowApiKeyWarning() {
     const existingWarning = document.getElementById('api-key-warning');
     const modelInfo = MODELS[currentModel];
     const provider = modelInfo ? modelInfo.provider : 'gemini';
-    
-    let hasRequiredKey = false;
-    let providerName = 'Google Gemini';
-    let keyMissingMessage = 'Für die Nutzung von BredAI ist ein kostenloser Google Gemini API-Schlüssel erforderlich.';
-    
-    if (provider === 'gemini') {
-        hasRequiredKey = userApiKeys.length > 0;
-        providerName = 'Google Gemini';
-        keyMissingMessage = 'Für die Nutzung von BredAI ist ein kostenloser Google Gemini API-Schlüssel erforderlich. Bitte füge mindestens einen Schlüssel in der Seitenleiste hinzu.';
-    } else if (provider === 'cerebras') {
-        hasRequiredKey = providerApiKeys.cerebras && providerApiKeys.cerebras.length > 0;
-        providerName = 'Cerebras';
-        keyMissingMessage = 'Für die Nutzung von Cerebras-Modellen benötigst du einen API-Key von cloud.cerebras.ai. Bitte trage ihn in der Seitenleiste ein.';
-    } else if (provider === 'nvidia') {
-        hasRequiredKey = providerApiKeys.nvidia && providerApiKeys.nvidia.length > 0;
-        providerName = 'Nvidia NIM';
-        keyMissingMessage = 'Für die Nutzung von Nvidia NIM-Modellen benötigst du einen API-Key von build.nvidia.com. Bitte trage ihn in der Seitenleiste ein.';
+
+    // Prüfen ob mindestens EIN API-Key irgendeines Providers vorhanden ist
+    const hasAnyKey = Object.values(providerApiKeys).some(key => key && key.length > 0);
+
+    let hasRequiredKey = hasApiKeyForProvider(provider);
+    let providerName = getProviderDisplayName(provider);
+    let keyMissingMessage = `Für die Nutzung von ${providerName} ist ein API-Schlüssel erforderlich.`;
+
+    if (!hasRequiredKey) {
+        // Wenn der aktuelle Provider keinen Key hat, aber andere schon, wechsle automatisch
+        const availableProvider = Object.keys(providerApiKeys).find(p => providerApiKeys[p] && providerApiKeys[p].length > 0);
+        if (availableProvider) {
+            const availableModel = Object.keys(MODELS).find(key => MODELS[key].provider === availableProvider);
+            if (availableModel) {
+                currentModel = availableModel;
+                showNotification(`Wechsle zu ${MODELS[availableModel].name} (API-Key verfügbar)`, 'info');
+                updateCurrentConfig();
+                messageInput.disabled = false;
+                sendBtn.disabled = false;
+                updateChatUI();
+                if (existingWarning) existingWarning.remove();
+                return;
+            }
+        }
     }
-    
+
     if (!hasRequiredKey) {
         if (!existingWarning || existingWarning.dataset.provider !== provider) {
             if (existingWarning) existingWarning.remove();
@@ -506,6 +466,19 @@ function checkAndShowApiKeyWarning() {
         sendBtn.disabled = false;
         updateChatUI();
     }
+}
+
+/**
+ * Gibt den Anzeigenamen für einen Provider zurück
+ */
+function getProviderDisplayName(provider) {
+    const names = {
+        gemini: 'Google Gemini',
+        groq: 'Groq',
+        cerebras: 'Cerebras',
+        nvidia: 'Nvidia NIM'
+    };
+    return names[provider] || provider;
 }
 
 /**
@@ -2127,14 +2100,13 @@ async function sendMessage() {
                         showSearchStatus(`Fehler bei Websuche. Fahre ohne Suche fort.`);
                         finalMessageForApi += `\n\n(Anweisung: Erwähne einen Fehler bei der Websuche.)`;
                     }
-                    botResponse = await sendGeminiTextMessage(finalMessageForApi, modelInfo.id, historyForAPI);
+                    botResponse = await sendWithFallback(finalMessageForApi, modelInfo.id, historyForAPI);
                 } else {
-                    botResponse = await sendGeminiTextMessage(finalMessageForApi, modelInfo.id, historyForAPI);
+                    botResponse = await sendWithFallback(finalMessageForApi, modelInfo.id, historyForAPI);
                 }
-            } else if (modelInfo.provider === 'cerebras') {
-                botResponse = await sendOpenAICompatibleMessage(finalMessageForApi, modelInfo, historyForAPI);
-            } else if (modelInfo.provider === 'nvidia') {
-                botResponse = await sendOpenAICompatibleMessage(finalMessageForApi, modelInfo, historyForAPI);
+            } else {
+                // Alle anderen Provider (Groq, Cerebras, Nvidia) verwenden sendWithFallback
+                botResponse = await sendWithFallback(finalMessageForApi, modelInfo.id, historyForAPI);
             }
         }
 
@@ -2221,18 +2193,95 @@ async function sendGeminiMultimodalMessage(textPrompt, file) {
 }
 
 /**
- * Sendet eine reine Text-Anfrage an die Gemini API.
- * Ich übergebe hier den Chat-Verlauf und den personalisierten System-Prompt.
- * NEU: Die Funktion berücksichtigt jetzt auch die globalen oder bot-spezifischen
- * Einstellungen für Temperatur und Top-P.
+ * HAUPT-API-FUNKTION mit Timeout und Fallback
+ * Sendet eine Anfrage an den aktuellen Provider und wechselt bei Fehler/Timeout automatisch
+ */
+async function sendWithFallback(message, modelId, history = chatHistory, systemPromptOverride = null) {
+    const modelInfo = MODELS[modelId];
+    if (!modelInfo) {
+        throw new Error(`Modell ${modelId} nicht gefunden`);
+    }
+
+    const provider = modelInfo.provider;
+    const startTime = Date.now();
+
+    try {
+        // API-Aufruf mit Timeout
+        const result = await Promise.race([
+            callProviderAPI(message, modelId, history, systemPromptOverride),
+            createTimeoutPromise(API_TIMEOUT_MS)
+        ]);
+
+        return result;
+    } catch (error) {
+        const elapsed = Date.now() - startTime;
+        const errorMessage = error.message.toLowerCase();
+
+        // Prüfen ob Timeout oder API-Fehler
+        const isTimeout = errorMessage.includes('timeout') || elapsed >= API_TIMEOUT_MS;
+        const isRateLimit = errorMessage.includes('rate limit') || errorMessage.includes('quota') || response?.status === 429;
+
+        console.log(`[API Error] Provider: ${provider}, Error: ${error.message}, Elapsed: ${elapsed}ms`);
+
+        // Versuche Fallback
+        const nextProvider = await getNextAvailableProvider(provider);
+
+        if (nextProvider) {
+            activateFallback(isTimeout ? 'Timeout (>30s)' : error.message, modelId);
+
+            // Finde ein Modell des neuen Providers
+            const fallbackModelKey = Object.keys(MODELS).find(key => MODELS[key].provider === nextProvider);
+            if (fallbackModelKey) {
+                currentModel = fallbackModelKey;
+                showNotification(`Wechsle zu ${MODELS[fallbackModelKey].name} wegen: ${isTimeout ? 'Timeout' : 'Fehler'}`, 'info');
+                return await callProviderAPI(message, MODELS[fallbackModelKey].id, history, systemPromptOverride);
+            }
+        }
+
+        throw error;
+    }
+}
+
+/**
+ * Timeout-Promise für API-Aufrufe
+ */
+function createTimeoutPromise(timeoutMs) {
+    return new Promise((_, reject) => {
+        setTimeout(() => {
+            reject(new Error('Timeout: API-Antwort dauerte zu lange'));
+        }, timeoutMs);
+    });
+}
+
+/**
+ * Ruft die passende Provider-API auf
+ */
+async function callProviderAPI(message, modelId, history, systemPromptOverride) {
+    const modelInfo = MODELS[modelId];
+    const provider = modelInfo.provider;
+
+    if (provider === 'gemini') {
+        return await sendGeminiTextMessage(message, modelId, history, systemPromptOverride);
+    } else if (provider === 'groq') {
+        return await sendGroqMessage(message, modelId, history, systemPromptOverride);
+    } else if (provider === 'cerebras') {
+        return await sendCerebrasMessage(message, modelId, history, systemPromptOverride);
+    } else if (provider === 'nvidia') {
+        return await sendNvidiaMessage(message, modelId, history, systemPromptOverride);
+    } else {
+        throw new Error(`Unbekannter Provider: ${provider}`);
+    }
+}
+
+/**
+ * Sendet eine Anfrage an die Gemini API
  */
 async function sendGeminiTextMessage(message, modelId, history = chatHistory, systemPromptOverride = null) {
-    const apiKey = await getNextAvailableApiKey(modelId);
+    const apiKey = getApiKeyForProvider('gemini');
     if (!apiKey) {
-        throw new Error("Konnte keinen gültigen API-Key für Gemini finden.");
+        throw new Error("Kein Gemini API-Key konfiguriert.");
     }
-    
-    // Erstellt den Nachrichtenverlauf für die API-Anfrage
+
     const contents = [
         ...history.slice(-15).map(entry => ({
             role: entry.type === 'user' ? 'user' : 'model',
@@ -2240,98 +2289,73 @@ async function sendGeminiTextMessage(message, modelId, history = chatHistory, sy
         })),
         { role: 'user', parts: [{ text: message }] }
     ];
-    
-    // Holt den passenden System-Prompt
-    const systemPrompt = systemPromptOverride ? systemPromptOverride : getPersonalizedSystemPrompt();
 
-    // NEU: Erstellt die generationConfig dynamisch
+    const systemPrompt = systemPromptOverride ? systemPromptOverride : getPersonalizedSystemPrompt();
     const activeBot = allBotPersonalities[currentBot];
     const generationConfig = {
-        // Wenn der aktive Bot (insbesondere ein Custom Bot) eigene Einstellungen hat, nutze sie.
-        // Sonst werden die globalen Einstellungen aus den Slidern verwendet.
         temperature: activeBot && activeBot.temperature !== undefined ? activeBot.temperature : temperature,
         topP: activeBot && activeBot.topP !== undefined ? activeBot.topP : topP
     };
 
-    // Stellt den kompletten Request-Body zusammen
     const requestBody = {
         contents: contents,
         systemInstruction: { parts: [{ text: systemPrompt }] },
-        // Fügt die neue Konfiguration für die KI hinzu
         generationConfig: generationConfig
     };
 
     const url = `${GEMINI_BASE_URL}${modelId}:generateContent?key=${apiKey}`;
-    
-    // Führt den API-Aufruf durch
+
     const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestBody)
     });
 
-    // Fehlerbehandlung für die API-Antwort
     if (!response.ok) {
         const errorBody = await response.text();
         console.error("Gemini API Error:", response.status, errorBody);
         try {
             const errorJson = JSON.parse(errorBody);
-            throw new Error(errorJson.error?.message || `API Fehler (Gemini)`);
+            throw new Error(errorJson.error?.message || `Gemini API Fehler`);
         } catch (e) {
-            throw new Error(`API Fehler (Gemini) - Antwort konnte nicht verarbeitet werden.`);
+            throw new Error(`Gemini API Fehler`);
         }
     }
 
-    // Gibt den Text der erfolgreichen Antwort zurück
     const data = await response.json();
     return data.candidates[0].content.parts[0].text;
 }
 
 /**
- * NEU: Sendet eine Anfrage an OpenAI-kompatible APIs (Cerebras, Nvidia).
- * Unterstützt Cerebras und Nvidia NIM APIs.
+ * Sendet eine Anfrage an die Groq API (OpenAI-kompatibel)
  */
-async function sendOpenAICompatibleMessage(message, modelInfo, history = chatHistory) {
-    const provider = modelInfo.provider;
-    const apiKey = providerApiKeys[provider];
-    
+async function sendGroqMessage(message, modelId, history = chatHistory, systemPromptOverride = null) {
+    const apiKey = getApiKeyForProvider('groq');
     if (!apiKey) {
-        throw new Error(`Kein API-Key für ${provider} konfiguriert. Bitte trage deinen ${provider}-API-Key in den Einstellungen ein.`);
+        throw new Error("Kein Groq API-Key konfiguriert.");
     }
-    
-    let baseUrl;
-    if (provider === 'cerebras') {
-        baseUrl = CEREBRAS_BASE_URL;
-    } else if (provider === 'nvidia') {
-        baseUrl = NVIDIA_BASE_URL;
-    } else {
-        throw new Error(`Unbekannter Provider: ${provider}`);
-    }
-    
-    const systemPrompt = getPersonalizedSystemPrompt();
+
+    const modelInfo = MODELS[modelId];
+    const systemPrompt = systemPromptOverride ? systemPromptOverride : getPersonalizedSystemPrompt();
     const activeBot = allBotPersonalities[currentBot];
-    
+
     const messages = [
+        { role: 'system', content: systemPrompt },
         ...history.slice(-15).map(entry => ({
             role: entry.type === 'user' ? 'user' : 'assistant',
             content: entry.message
         })),
         { role: 'user', content: message }
     ];
-    
+
     const requestBody = {
         model: modelInfo.id,
-        messages: [
-            { role: 'system', content: systemPrompt },
-            ...messages
-        ],
+        messages: messages,
         temperature: activeBot && activeBot.temperature !== undefined ? activeBot.temperature : temperature,
-        max_tokens: 4096
+        max_tokens: 8192
     };
-    
-    const url = `${baseUrl}/chat/completions`;
-    
-    const response = await fetch(url, {
+
+    const response = await fetch(`${GROQ_BASE_URL}/chat/completions`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -2339,18 +2363,114 @@ async function sendOpenAICompatibleMessage(message, modelInfo, history = chatHis
         },
         body: JSON.stringify(requestBody)
     });
-    
+
     if (!response.ok) {
         const errorBody = await response.text();
-        console.error(`${provider} API Error:`, response.status, errorBody);
+        console.error("Groq API Error:", response.status, errorBody);
         try {
             const errorJson = JSON.parse(errorBody);
-            throw new Error(errorJson.error?.message || `API Fehler (${provider})`);
+            throw new Error(errorJson.error?.message || `Groq API Fehler`);
         } catch (e) {
-            throw new Error(`API Fehler (${provider}) - ${response.status}`);
+            throw new Error(`Groq API Fehler`);
         }
     }
-    
+
+    const data = await response.json();
+    return data.choices[0].message.content;
+}
+
+/**
+ * Sendet eine Anfrage an die Cerebras API (OpenAI-kompatibel)
+ */
+async function sendCerebrasMessage(message, modelId, history = chatHistory, systemPromptOverride = null) {
+    const apiKey = getApiKeyForProvider('cerebras');
+    if (!apiKey) {
+        throw new Error("Kein Cerebras API-Key konfiguriert.");
+    }
+
+    const modelInfo = MODELS[modelId];
+    const systemPrompt = systemPromptOverride ? systemPromptOverride : getPersonalizedSystemPrompt();
+    const activeBot = allBotPersonalities[currentBot];
+
+    const messages = [
+        { role: 'system', content: systemPrompt },
+        ...history.slice(-15).map(entry => ({
+            role: entry.type === 'user' ? 'user' : 'assistant',
+            content: entry.message
+        })),
+        { role: 'user', content: message }
+    ];
+
+    const requestBody = {
+        model: modelInfo.id,
+        messages: messages,
+        temperature: activeBot && activeBot.temperature !== undefined ? activeBot.temperature : temperature,
+        max_tokens: 8192
+    };
+
+    const response = await fetch(`${CEREBRAS_BASE_URL}/chat/completions`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify(requestBody)
+    });
+
+    if (!response.ok) {
+        const errorBody = await response.text();
+        console.error("Cerebras API Error:", response.status, errorBody);
+        throw new Error(`Cerebras API Fehler: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.choices[0].message.content;
+}
+
+/**
+ * Sendet eine Anfrage an die NVIDIA NIM API (OpenAI-kompatibel)
+ */
+async function sendNvidiaMessage(message, modelId, history = chatHistory, systemPromptOverride = null) {
+    const apiKey = getApiKeyForProvider('nvidia');
+    if (!apiKey) {
+        throw new Error("Kein Nvidia API-Key konfiguriert.");
+    }
+
+    const modelInfo = MODELS[modelId];
+    const systemPrompt = systemPromptOverride ? systemPromptOverride : getPersonalizedSystemPrompt();
+    const activeBot = allBotPersonalities[currentBot];
+
+    const messages = [
+        { role: 'system', content: systemPrompt },
+        ...history.slice(-15).map(entry => ({
+            role: entry.type === 'user' ? 'user' : 'assistant',
+            content: entry.message
+        })),
+        { role: 'user', content: message }
+    ];
+
+    const requestBody = {
+        model: modelInfo.id,
+        messages: messages,
+        temperature: activeBot && activeBot.temperature !== undefined ? activeBot.temperature : temperature,
+        max_tokens: 4096
+    };
+
+    const response = await fetch(`${NVIDIA_BASE_URL}/chat/completions`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify(requestBody)
+    });
+
+    if (!response.ok) {
+        const errorBody = await response.text();
+        console.error("Nvidia API Error:", response.status, errorBody);
+        throw new Error(`Nvidia API Fehler: ${response.status}`);
+    }
+
     const data = await response.json();
     return data.choices[0].message.content;
 }
