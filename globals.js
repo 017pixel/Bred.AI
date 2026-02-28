@@ -22,31 +22,31 @@ const CUSTOM_SEARCH_API_URL = "https://www.googleapis.com/customsearch/v1";
  * Basierend auf den offiziellen API-Dokumentationen
  */
 const MODELS = {
-    // Google Gemini Modelle (neueste 3er und 2.5er Serie)
-    "gemini-3-pro": {
-        "id": "gemini-3-pro",
-        "name": "Gemini 3 Pro",
+    // Google Gemini Modelle (neueste 3.1er und 2.5er Serie)
+    "gemini-3.1-pro": {
+        "id": "gemini-3.1-pro",
+        "name": "Gemini 3.1 Pro",
         "emoji": "💎",
         "provider": "gemini",
         "capabilities": ["text", "vision", "search"],
         "rpm": 10,
         "rpd": 500,
-        "description": "Googles stärkstes Modell (Preview)"
+        "description": "Googles stärkstes Modell (2026)"
     },
-    "gemini-3-flash": {
-        "id": "gemini-3-flash",
-        "name": "Gemini 3 Flash",
-        "emoji": "⚡",
+    "gemini-3-pro": {
+        "id": "gemini-3-pro",
+        "name": "Gemini 3 Pro",
+        "emoji": "🔷",
         "provider": "gemini",
         "capabilities": ["text", "vision", "search"],
-        "rpm": 15,
-        "rpd": 1000,
-        "description": "Schnelles Multimodal-Modell (Preview)"
+        "rpm": 10,
+        "rpd": 500,
+        "description": "Googles Premium-Modell"
     },
     "gemini-2.5-pro": {
         "id": "gemini-2.5-pro",
         "name": "Gemini 2.5 Pro",
-        "emoji": "🔷",
+        "emoji": "💠",
         "provider": "gemini",
         "capabilities": ["text", "vision", "search"],
         "rpm": 10,
@@ -61,7 +61,7 @@ const MODELS = {
         "capabilities": ["text", "vision", "search"],
         "rpm": 15,
         "rpd": 1000,
-        "description": "Schnelles Modell für alltägliche Aufgaben"
+        "description": "Schnelles Multimodal-Modell"
     },
     "gemini-2.5-flash-lite": {
         "id": "gemini-2.5-flash-lite",
@@ -74,7 +74,7 @@ const MODELS = {
         "description": "Leichtes, schnelles Modell"
     },
 
-    // Groq Modelle (ultraschnelle Inference)
+    // Groq Modelle (ultraschnelle Inference - Stand 2026)
     "groq-llama-3.3-70b": {
         "id": "llama-3.3-70b-versatile",
         "name": "Llama 3.3 70B",
@@ -105,7 +105,7 @@ const MODELS = {
         "rpd": 14400,
         "description": "Meta's Llama 4 (Preview)"
     },
-    "groq-qwen3": {
+    "groq-qwen3-32b": {
         "id": "qwen/qwen3-32b",
         "name": "Qwen 3 32B",
         "emoji": "🐉",
@@ -113,7 +113,17 @@ const MODELS = {
         "capabilities": ["text"],
         "rpm": 30,
         "rpd": 14400,
-        "description": "Alibabas Qwen 3 (Preview)"
+        "description": "Alibabas Qwen 3 (2026)"
+    },
+    "groq-gpt-oss-120b": {
+        "id": "openai/gpt-oss-120b",
+        "name": "GPT-OSS 120B",
+        "emoji": "🤖",
+        "provider": "groq",
+        "capabilities": ["text"],
+        "rpm": 30,
+        "rpd": 14400,
+        "description": "OpenAI GPT OSS (Preview)"
     },
 
     // Cerebras Modelle (Fallback-Provider - extrem schnell)
@@ -138,7 +148,7 @@ const MODELS = {
         "description": "Ultraschnelles kleines Modell"
     },
 
-    // NVIDIA NIM Modelle (viele Top-Modelle verfügbar)
+    // NVIDIA NIM Modelle (viele Top-Modelle verfügbar - Stand 2026)
     "nvidia-llama-3.3-70b": {
         "id": "meta/llama-3.3-70b-instruct",
         "name": "Llama 3.3 70B",
@@ -149,9 +159,19 @@ const MODELS = {
         "rpd": 5000,
         "description": "Meta's neuestes Open-Source-Modell"
     },
-    "nvidia-deepseek-v3.2": {
-        "id": "deepseek-ai/deepseek-v3.2",
-        "name": "DeepSeek V3.2",
+    "nvidia-llama-4-scout": {
+        "id": "meta-llama/llama-4-scout-17b-16e-instruct",
+        "name": "Llama 4 Scout",
+        "emoji": "🔮",
+        "provider": "nvidia",
+        "capabilities": ["text"],
+        "rpm": 100,
+        "rpd": 5000,
+        "description": "Meta's Llama 4 (Preview)"
+    },
+    "nvidia-deepseek-v3": {
+        "id": "deepseek-ai/deepseek-v3",
+        "name": "DeepSeek V3",
         "emoji": "🌟",
         "provider": "nvidia",
         "capabilities": ["text"],
@@ -177,9 +197,9 @@ const MODELS = {
         "capabilities": ["text"],
         "rpm": 100,
         "rpd": 5000,
-        "description": "Alibabas größtes Modell"
+        "description": "Alibabas größtes Modell (2026)"
     },
-    "nvidia-qwen3-coder": {
+    "nvidia-qwen3-coder-480b": {
         "id": "qwen/qwen3-coder-480b-a35b-instruct",
         "name": "Qwen 3 Coder 480B",
         "emoji": "💻",

@@ -2723,20 +2723,63 @@ function toggleTab(tabName) {
 
 /**
  * Startet die geführte Tour mit Intro.js.
- * Ich habe die Button-Texte angepasst, damit sie auf Deutsch sind.
+ * Ich habe die Button-Texte angepasst und die Tour verbessert, damit sie auf die richtigen Elemente zeigt.
  */
 function startTour() {
     // Überprüfen, ob introJs eine Funktion ist, bevor sie aufgerufen wird.
     if (typeof introJs === 'function') {
         introJs().setOptions({
+            steps: [
+                {
+                    title: 'Willkommen bei Bred.AI! 🎉',
+                    intro: 'Hallo! Willkommen bei BredAI. Dies ist deine Sidebar mit allen Funktionen. Klicke auf das Hamburger-Menü, um sie zu öffnen oder zu schließen.',
+                    element: document.querySelector('.sidebar-toggle') || document.querySelector('.hamburger'),
+                    position: 'bottom'
+                },
+                {
+                    title: 'Bot-Persönlichkeiten',
+                    intro: 'Hier kannst du zwischen verschiedenen KI-Persönlichkeiten wechseln oder deine eigenen erstellen. Probiere es aus!',
+                    element: document.querySelector('[onclick="toggleTab(\'bots\')"]') || document.querySelector('.sidebar-tab:nth-child(2)'),
+                    position: 'right'
+                },
+                {
+                    title: 'KI-Modelle',
+                    intro: 'Wähle hier das passende KI-Modell. Gemini ist schnell und kann Bilder analysieren, Groq ist ultraschnell, und andere Provider bieten weitere Optionen.',
+                    element: document.querySelector('[onclick="toggleTab(\'models\')"]') || document.querySelector('.sidebar-tab:nth-child(5)'),
+                    position: 'right'
+                },
+                {
+                    title: 'API-Schlüssel',
+                    intro: 'Hier kannst du deine kostenlosen API-Schlüssel für verschiedene KI-Provider hinterlegen. Jeder Provider bietet kostenlose Kontingente!',
+                    element: document.querySelector('[onclick="toggleTab(\'api-keys\')"]') || document.querySelector('.sidebar-tab:nth-child(4)'),
+                    position: 'right'
+                },
+                {
+                    title: 'Chat-Eingabe',
+                    intro: 'Und hier schreibst du deine Nachrichten. Mit der Büroklammer kannst du auch Dateien hochladen. Viel Spaß!',
+                    element: document.querySelector('.chat-input-area'),
+                    position: 'top'
+                },
+                {
+                    title: 'Einstellungen',
+                    intro: 'In den Einstellungen kannst du das Aussehen anpassen, Sprachausgabe konfigurieren und weitere Optionen festlegen.',
+                    element: document.querySelector('[onclick="toggleTab(\'settings\')"]') || document.querySelector('.sidebar-tab:nth-child(7)'),
+                    position: 'right'
+                }
+            ],
             nextLabel: 'Weiter →',
             prevLabel: '← Zurück',
             doneLabel: 'Fertig',
             showStepNumbers: false,
-            exitOnOverlayClick: false
+            exitOnOverlayClick: true,
+            exitOnEsc: true,
+            keyboardNavigation: true,
+            showBullets: true,
+            disableInteraction: false
         }).start();
     } else {
         console.error("Intro.js ist nicht geladen. Tour kann nicht gestartet werden.");
+        showNotification('Intro.js ist nicht verfügbar. Bitte lade die Seite neu.', 'error');
     }
 }
 

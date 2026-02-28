@@ -1,0 +1,293 @@
+/* Sidebar Komponenten */
+
+.main-container {
+  @apply flex h-screen relative;
+}
+
+.main-container.sidebar-collapsed .sidebar {
+  margin-left: -300px;
+}
+
+.sidebar {
+  @apply w-[300px] flex-shrink-0 bg-white h-[calc(100vh-60px)] mt-[60px] shadow-[2px_0_10px_rgba(0,0,0,0.1)] overflow-y-auto z-[999];
+  transition: margin-left 0.3s ease;
+}
+
+[data-theme="dark"] .sidebar {
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border-color);
+}
+
+/* Mobile Sidebar */
+@media (max-width: 768px) {
+  .sidebar {
+    @apply fixed z-[1001] w-full max-w-[350px] m-0;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+
+  .main-container:not(.sidebar-collapsed) .sidebar {
+    transform: translateX(0);
+  }
+
+  .main-container.sidebar-collapsed .sidebar {
+    transform: translateX(-100%);
+  }
+}
+
+.sidebar.collapsed {
+  transform: translateX(-100%);
+}
+
+/* Sidebar Overlay */
+.sidebar-overlay {
+  @apply fixed top-0 left-0 w-full h-full bg-black/50 z-[998] opacity-0 invisible transition-all duration-300;
+}
+
+.sidebar-overlay.active {
+  @apply opacity-100 visible;
+}
+
+/* Sidebar Tabs */
+.sidebar-tab {
+  @apply border-b border-[#e5e7eb];
+}
+
+.tab-header {
+  @apply px-5 py-4 bg-bg-secondary cursor-pointer flex justify-between items-center font-semibold transition-all duration-300 border-l-4 border-transparent;
+  color: var(--primary-accent);
+}
+
+.tab-header:hover {
+  background: #e8f5e8;
+  border-left-color: var(--primary-accent);
+}
+
+.tab-header.active {
+  @apply text-white;
+  background: var(--primary-accent);
+}
+
+[data-theme="dark"] .tab-header {
+  background: var(--bg-primary);
+  color: var(--dark-primary-accent-lighter);
+}
+
+[data-theme="dark"] .tab-header:hover {
+  background: var(--bg-primary);
+}
+
+[data-theme="dark"] .tab-header.active {
+  background: var(--dark-primary-accent);
+}
+
+.tab-content {
+  @apply max-h-0 overflow-hidden bg-white transition-all duration-300;
+}
+
+[data-theme="dark"] .tab-content {
+  background: var(--bg-secondary);
+}
+
+.tab-content.active {
+  @apply max-h-[2000px] p-5;
+}
+
+/* Settings Boxes */
+.settings-box {
+  @apply border-2 rounded-xl p-4 mb-4 bg-bg-secondary transition-all duration-300;
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .settings-box {
+  background: var(--bg-primary);
+  border-color: var(--border-color);
+}
+
+.settings-box:hover {
+  @apply -translate-y-0.5;
+  box-shadow: 0 4px 15px rgba(45, 90, 61, 0.2);
+}
+
+.settings-box h3 {
+  @apply m-0 mb-2.5 text-lg font-semibold;
+  color: var(--primary-accent);
+}
+
+[data-theme="dark"] .settings-box h3 {
+  color: var(--dark-primary-accent-lighter);
+}
+
+/* List Items (Bot, Model, History, Profile, Project) */
+.bot-item,
+.model-item,
+.history-item,
+.profile-item,
+.project-item {
+  @apply flex items-center p-2.5 m-1 rounded-lg cursor-pointer transition-all duration-300 border bg-white;
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .bot-item,
+[data-theme="dark"] .model-item,
+[data-theme="dark"] .history-item,
+[data-theme="dark"] .profile-item,
+[data-theme="dark"] .project-item {
+  background: var(--bg-primary);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+.bot-item:hover,
+.model-item:hover,
+.history-item:hover,
+.profile-item:hover,
+.project-item:hover {
+  @apply translate-x-1.5 text-white;
+  background: var(--primary-accent);
+}
+
+[data-theme="dark"] .bot-item:hover,
+[data-theme="dark"] .model-item:hover,
+[data-theme="dark"] .history-item:hover,
+[data-theme="dark"] .profile-item:hover,
+[data-theme="dark"] .project-item:hover {
+  background: var(--dark-primary-accent);
+}
+
+.bot-item.active,
+.model-item.active,
+.history-item.active,
+.profile-item.active,
+.project-item.active {
+  @apply text-white;
+  background: var(--primary-accent);
+}
+
+[data-theme="dark"] .bot-item.active,
+[data-theme="dark"] .model-item.active,
+[data-theme="dark"] .history-item.active,
+[data-theme="dark"] .profile-item.active,
+[data-theme="dark"] .project-item.active {
+  background: var(--dark-primary-accent);
+}
+
+/* History Item Specific */
+.history-item {
+  @apply flex-col items-start gap-1;
+}
+
+.history-item-title {
+  @apply font-semibold text-[0.95rem] whitespace-nowrap overflow-hidden text-ellipsis w-full;
+}
+
+.history-item-date {
+  @apply text-xs opacity-70;
+}
+
+/* Interest Tags */
+.interest-tag {
+  @apply inline-flex items-center text-white px-2.5 py-1 rounded-full text-[0.9rem] transition-all duration-300;
+  background: var(--primary-accent);
+}
+
+.interest-tag:hover {
+  @apply scale-105;
+  background: var(--primary-accent-light);
+}
+
+[data-theme="dark"] .interest-tag {
+  background: var(--dark-primary-accent);
+}
+
+.interest-tag .remove-btn {
+  @apply ml-1.5 font-bold cursor-pointer;
+}
+
+.add-interest {
+  @apply flex gap-2.5 mt-2.5 items-center;
+}
+
+.add-interest input {
+  @apply flex-1 px-3 py-2 border-2 rounded-full outline-none transition-all duration-300;
+  border-color: var(--border-color);
+}
+
+.add-interest input:focus {
+  border-color: var(--primary-accent);
+  box-shadow: 0 0 0 3px rgba(45, 90, 61, 0.1);
+}
+
+.add-interest button {
+  @apply bg-white text-white border-none px-4 py-2 rounded-full cursor-pointer transition-all duration-300;
+  background: var(--primary-accent);
+}
+
+.add-interest button:hover {
+  @apply scale-105;
+  background: var(--primary-accent-light);
+}
+
+[data-theme="dark"] .add-interest button {
+  background: var(--dark-primary-accent);
+}
+
+/* Delete Buttons */
+.delete-bot-btn,
+.delete-profile-btn,
+.delete-project-btn {
+  @apply ml-auto px-2 py-1 rounded-full cursor-pointer text-xl transition-all duration-200;
+}
+
+.delete-bot-btn:hover,
+.delete-profile-btn:hover,
+.delete-project-btn:hover {
+  @apply text-white;
+  background-color: rgba(255, 0, 0, 0.7);
+}
+
+/* Theme Toggle */
+.theme-toggle {
+  @apply flex items-center justify-center gap-2.5 p-2.5;
+}
+
+/* Switch Styles */
+.switch {
+  @apply relative inline-block w-[60px] h-[34px];
+}
+
+.switch input {
+  @apply opacity-0 w-0 h-0;
+}
+
+.slider {
+  @apply absolute cursor-pointer top-0 left-0 right-0 bottom-0 bg-gray-300;
+  transition: background-color 0.4s;
+}
+
+.slider:before {
+  @apply absolute content-[""] h-[26px] w-[26px] left-1 bottom-1 bg-white rounded-[34px];
+  transition: transform 0.4s;
+}
+
+input:checked + .slider {
+  background-color: var(--primary-accent);
+}
+
+input:checked + .slider:before {
+  @apply translate-x-[26px];
+}
+
+[data-theme="dark"] .new-chat-btn,
+[data-theme="dark"] .send-btn {
+  background: var(--dark-primary-accent);
+}
+
+[data-theme="dark"] .hamburger span,
+[data-theme="dark"] .sidebar-toggle span {
+  background: var(--dark-primary-accent);
+}
+
+[data-theme="dark"] .logo {
+  color: var(--dark-primary-accent-lighter);
+}

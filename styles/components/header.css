@@ -1,0 +1,88 @@
+/* Header Komponenten */
+
+.header {
+  @apply fixed top-0 left-0 right-0 h-[60px] bg-white shadow-md flex items-center justify-between px-5 z-[1000] transition-all duration-300;
+}
+
+[data-theme="dark"] .header {
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.logo {
+  @apply flex items-center gap-2.5 text-2xl font-bold transition-all duration-300;
+  color: var(--primary-accent-lighter);
+}
+
+.logo:hover {
+  @apply scale-105 rotate-2;
+  color: var(--primary-accent-light);
+}
+
+.logo i {
+  @apply text-3xl animate-logo-float;
+}
+
+.header-actions {
+  @apply flex items-center gap-4;
+}
+
+/* Hamburger & Sidebar Toggle */
+.hamburger,
+.sidebar-toggle {
+  @apply flex flex-col cursor-pointer p-1 bg-transparent border-none;
+}
+
+.hamburger span,
+.sidebar-toggle span {
+  @apply w-[25px] h-[3px] my-0.5 rounded-[2px] transition-[transform,opacity] duration-300;
+  background: var(--primary-accent);
+}
+
+.hamburger.active span:nth-child(1),
+.sidebar-toggle.active span:nth-child(1) {
+  transform: rotate(-45deg) translate(-5px, 6px);
+}
+
+.hamburger.active span:nth-child(2),
+.sidebar-toggle.active span:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburger.active span:nth-child(3),
+.sidebar-toggle.active span:nth-child(3) {
+  transform: rotate(45deg) translate(-5px, -6px);
+}
+
+.sidebar-toggle {
+  @apply hidden;
+}
+
+@media (min-width: 769px) {
+  .hamburger {
+    @apply hidden;
+  }
+  .sidebar-toggle {
+    @apply flex;
+  }
+}
+
+/* Chat Header */
+.chat-header {
+  @apply bg-white py-1 px-2.5 text-center border-t-2 border-b-2 block;
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .chat-header {
+  background: var(--bg-secondary);
+  border-color: var(--border-color);
+}
+
+.current-config {
+  @apply text-[0.85rem] font-medium inline-block;
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .current-config {
+  color: var(--text-secondary);
+}

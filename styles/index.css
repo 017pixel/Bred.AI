@@ -1,0 +1,123 @@
+@import './components/header.css';
+@import './components/sidebar.css';
+@import './components/chat.css';
+@import './components/modal.css';
+@import './components/notifications.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* CSS Custom Properties für Akzentfarben */
+@layer base {
+  :root {
+    /* Standard Grün */
+    --primary-accent: #2d5a3d;
+    --primary-accent-light: #3d7a4f;
+    --primary-accent-lighter: #4d8a5f;
+    --primary-accent-dark: #1d4a2d;
+    --dark-primary-accent: #6fbb82;
+    --dark-primary-accent-light: #7fc792;
+    --dark-primary-accent-lighter: #8fd3a2;
+  }
+
+  [data-accent-color="green"] {
+    --primary-accent: #2d5a3d;
+    --primary-accent-light: #3d7a4f;
+    --primary-accent-lighter: #4d8a5f;
+    --primary-accent-dark: #1d4a2d;
+    --dark-primary-accent: #6fbb82;
+    --dark-primary-accent-light: #7fc792;
+    --dark-primary-accent-lighter: #8fd3a2;
+  }
+
+  [data-accent-color="pastel-green"] {
+    --primary-accent: #508D69;
+    --primary-accent-light: #70a184;
+    --primary-accent-lighter: #95c0a9;
+    --primary-accent-dark: #3e7054;
+    --dark-primary-accent: #9ADE7B;
+    --dark-primary-accent-light: #b4e89c;
+    --dark-primary-accent-lighter: #cff2bf;
+  }
+
+  [data-accent-color="blue"] {
+    --primary-accent: #0D6EFD;
+    --primary-accent-light: #3a88fd;
+    --primary-accent-lighter: #6ca7fd;
+    --primary-accent-dark: #0a58ca;
+    --dark-primary-accent: #58a6ff;
+    --dark-primary-accent-light: #79b8ff;
+    --dark-primary-accent-lighter: #9ac9ff;
+  }
+
+  [data-accent-color="orange"] {
+    --primary-accent: #D97706;
+    --primary-accent-light: #f38f18;
+    --primary-accent-lighter: #f7a649;
+    --primary-accent-dark: #b46105;
+    --dark-primary-accent: #f59e0b;
+    --dark-primary-accent-light: #f7b048;
+    --dark-primary-accent-lighter: #f9c173;
+  }
+
+  [data-accent-color="purple"] {
+    --primary-accent: #8B5CF6;
+    --primary-accent-light: #a485f8;
+    --primary-accent-lighter: #c0abfa;
+    --primary-accent-dark: #703af0;
+    --dark-primary-accent: #a78bfa;
+    --dark-primary-accent-light: #c0abfa;
+    --dark-primary-accent-lighter: #d8c9fc;
+  }
+
+  /* Light Theme */
+  :root {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f8faf9;
+    --text-primary: #1a1a1a;
+    --text-secondary: #555555;
+    --border-color: #e5e7eb;
+  }
+
+  /* Dark Theme */
+  [data-theme="dark"] {
+    --bg-primary: #1e1e1e;
+    --bg-secondary: #2a2a2a;
+    --text-primary: #e8e8e8;
+    --text-secondary: #b0b0b0;
+    --border-color: #3a3a3a;
+  }
+}
+
+@layer utilities {
+  .scrollbar-custom {
+    &::-webkit-scrollbar {
+      width: 10px;
+    }
+    &::-webkit-scrollbar-track {
+      background: var(--bg-secondary);
+    }
+    &::-webkit-scrollbar-thumb {
+      background-color: var(--primary-accent-dark);
+      border-radius: 5px;
+      border: 2px solid var(--bg-secondary);
+    }
+    &::-webkit-scrollbar-thumb:hover {
+      background-color: var(--primary-accent-light);
+    }
+  }
+
+  [data-theme="dark"] .scrollbar-custom {
+    &::-webkit-scrollbar-track {
+      background: var(--bg-primary);
+    }
+    &::-webkit-scrollbar-thumb {
+      background-color: var(--dark-primary-accent);
+      border-color: var(--bg-primary);
+    }
+    &::-webkit-scrollbar-thumb:hover {
+      background-color: var(--dark-primary-accent-light);
+    }
+  }
+}

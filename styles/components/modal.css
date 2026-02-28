@@ -1,0 +1,355 @@
+/* Modal Komponenten */
+
+.modal {
+  @apply fixed top-0 left-0 w-full h-full bg-black/50 flex justify-center items-center z-[2000] opacity-0 invisible transition-all duration-300;
+}
+
+.modal.active {
+  @apply opacity-100 visible;
+}
+
+.modal-content {
+  @apply bg-white p-8 rounded-2xl max-w-[600px] w-[90%] max-h-[90%] overflow-y-auto transform scale-75 transition-transform duration-300;
+}
+
+[data-theme="dark"] .modal-content {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.modal.active .modal-content {
+  @apply scale-100;
+}
+
+/* Modal Form Elements */
+.modal-content input,
+.modal-content textarea,
+.modal-content select {
+  @apply w-full p-2.5 rounded-lg border-2 outline-none transition-colors duration-200;
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .modal-content input,
+[data-theme="dark"] .modal-content textarea,
+[data-theme="dark"] .modal-content select {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+.modal-content input::placeholder,
+.modal-content textarea::placeholder {
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .modal-content input::placeholder,
+[data-theme="dark"] .modal-content textarea::placeholder {
+  color: var(--text-secondary);
+}
+
+/* Modal Actions */
+.modal-actions {
+  @apply text-center flex gap-4 justify-center mt-8;
+}
+
+.modal-btn {
+  @apply border-none px-6 py-3 rounded-full cursor-pointer font-semibold transition-all duration-200;
+}
+
+.modal-btn:hover {
+  @apply -translate-y-0.5;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.modal-btn.primary {
+  @apply text-white;
+  background: var(--primary-accent);
+}
+
+.modal-btn.primary:hover {
+  background: var(--primary-accent-light);
+}
+
+[data-theme="dark"] .modal-btn.primary {
+  background: var(--dark-primary-accent);
+  color: var(--bg-primary);
+}
+
+[data-theme="dark"] .modal-btn.primary:hover {
+  background: var(--dark-primary-accent-light);
+}
+
+.modal-btn.secondary {
+  @apply border;
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  border-color: var(--border-color);
+}
+
+.modal-btn.secondary:hover {
+  background: #e9ecef;
+  border-color: #ced4da;
+}
+
+[data-theme="dark"] .modal-btn.secondary {
+  background: var(--bg-primary);
+  color: var(--text-secondary);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .modal-btn.secondary:hover {
+  background: var(--border-color);
+}
+
+/* Modal Links */
+.modal-btn[href] {
+  @apply no-underline flex items-center justify-center gap-2;
+}
+
+/* Project File List */
+#project-file-list {
+  @apply mt-2.5 p-2.5 bg-bg-secondary rounded-lg border-dashed border min-h-[40px];
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] #project-file-list {
+  background: var(--bg-primary);
+  border-color: var(--border-color);
+}
+
+.file-list-item {
+  @apply flex justify-between items-center px-2 py-1 bg-black/5 rounded mb-1;
+}
+
+[data-theme="dark"] .file-list-item {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.file-list-item .file-name-span {
+  @apply flex-1 whitespace-nowrap overflow-hidden text-ellipsis min-w-0 text-sm;
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .file-list-item .file-name-span {
+  color: var(--text-secondary);
+}
+
+.remove-file-btn {
+  @apply bg-transparent border-none text-red-600 font-bold cursor-pointer text-xl px-1.5;
+}
+
+[data-theme="dark"] #project-bot-select,
+[data-theme="dark"] #custom-bot-model {
+  background-color: var(--bg-primary) !important;
+}
+
+[data-theme="dark"] .search-status-message {
+  background-color: var(--bg-secondary);
+  color: var(--dark-primary-accent-lighter);
+  border: 1px solid var(--border-color);
+}
+
+/* API Provider Cards */
+.api-provider-card {
+  @apply transition-all duration-200;
+}
+
+.api-provider-card:hover {
+  @apply shadow-md;
+  transform: translateX(2px);
+}
+
+.api-provider-card input:focus {
+  @apply ring-1 ring-offset-0;
+}
+
+[data-theme="dark"] .api-provider-card {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+[data-theme="dark"] .api-provider-card:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+/* API Keys Styling - Zentriert und verbessert */
+.api-keys-settings-box {
+  @apply p-6;
+}
+
+.api-keys-title {
+  @apply text-xl font-bold mb-3 text-center;
+  color: var(--primary-accent);
+}
+
+[data-theme="dark"] .api-keys-title {
+  color: var(--dark-primary-accent-lighter);
+}
+
+.api-keys-description {
+  @apply text-sm text-center mb-6;
+  color: var(--text-secondary);
+}
+
+.api-keys-grid {
+  @apply grid grid-cols-1 gap-4 mb-6;
+}
+
+@media (min-width: 640px) {
+  .api-keys-grid {
+    @apply grid-cols-2;
+  }
+}
+
+/* Mobile-Optimierung für API-Keys */
+@media (max-width: 640px) {
+  .api-keys-settings-box {
+    @apply p-4;
+  }
+  
+  .api-keys-title {
+    @apply text-lg;
+  }
+  
+  .api-keys-description {
+    @apply text-xs;
+  }
+  
+  .api-provider-card {
+    @apply p-3;
+  }
+}
+
+.api-provider-card {
+  @apply rounded-xl p-4 border-2 transition-all duration-300;
+  background: var(--bg-secondary);
+  border-color: var(--border-color);
+}
+
+.api-provider-card:hover {
+  @apply -translate-y-1 shadow-lg;
+  border-color: var(--primary-accent);
+}
+
+[data-theme="dark"] .api-provider-card {
+  background: var(--bg-primary);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .api-provider-card:hover {
+  border-color: var(--dark-primary-accent);
+}
+
+.api-provider-header {
+  @apply flex items-center gap-2.5 mb-2;
+}
+
+.api-provider-icon {
+  @apply text-xl;
+}
+
+.api-provider-title {
+  @apply font-semibold text-base flex items-center gap-2;
+}
+
+.api-provider-badge {
+  @apply text-[10px] px-2 py-0.5 rounded-full font-normal opacity-90;
+  background: rgba(128, 128, 128, 0.2);
+}
+
+.api-provider-description {
+  @apply text-xs mb-3;
+  color: var(--text-secondary);
+}
+
+.api-provider-link {
+  @apply font-medium transition-colors duration-200;
+  text-decoration: none;
+}
+
+.api-provider-link:hover {
+  @apply underline;
+}
+
+.api-provider-input {
+  @apply w-full px-3 py-2.5 rounded-lg border-2 outline-none transition-all duration-200 text-sm;
+  background: var(--bg-primary);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+.api-provider-input:focus {
+  @apply ring-2 ring-offset-0;
+  border-color: var(--primary-accent);
+}
+
+.api-provider-input[data-color="#4285f4"]:focus {
+  border-color: #4285f4;
+  box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.1);
+}
+
+.api-provider-input[data-color="#f97316"]:focus {
+  border-color: #f97316;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+}
+
+.api-provider-input[data-color="#dc2626"]:focus {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+.api-provider-input[data-color="#76b900"]:focus {
+  border-color: #76b900;
+  box-shadow: 0 0 0 3px rgba(118, 185, 0, 0.1);
+}
+
+.api-keys-actions {
+  @apply flex flex-col gap-3;
+}
+
+.api-keys-save-btn,
+.api-keys-help-btn {
+  @apply w-full px-4 py-3 rounded-full font-semibold cursor-pointer transition-all duration-200 flex items-center justify-center gap-2 border-none;
+}
+
+.api-keys-save-btn {
+  @apply text-white;
+  background: var(--primary-accent);
+}
+
+.api-keys-save-btn:hover {
+  @apply -translate-y-0.5 shadow-md;
+  background: var(--primary-accent-light);
+}
+
+[data-theme="dark"] .api-keys-save-btn {
+  background: var(--dark-primary-accent);
+}
+
+[data-theme="dark"] .api-keys-save-btn:hover {
+  background: var(--dark-primary-accent-light);
+}
+
+.api-keys-help-btn {
+  @apply border-2;
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  border-color: var(--border-color);
+}
+
+.api-keys-help-btn:hover {
+  @apply -translate-y-0.5;
+  background: var(--bg-primary);
+  border-color: var(--primary-accent);
+  color: var(--primary-accent);
+}
+
+[data-theme="dark"] .api-keys-help-btn {
+  background: var(--bg-primary);
+  color: var(--text-secondary);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .api-keys-help-btn:hover {
+  border-color: var(--dark-primary-accent);
+  color: var(--dark-primary-accent);
+}

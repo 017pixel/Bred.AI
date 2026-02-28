@@ -1,28 +1,92 @@
 # 🤖 BredAI – Mein persönlicher KI-Chat-Assistent
 
-Ich bin Schüler und beschäftige mich seit über zwei Jahren intensiv mit KI-Entwicklung und Ethik. **BredAI** ist mein bisher größtes Projekt – ein persönlicher KI-Assistent, komplett im Browser umgesetzt.  
+Ich bin Schüler und beschäftige mich seit über zwei Jahren intensiv mit KI-Entwicklung und Ethik. **BredAI** ist mein bisher größtes Projekt – ein persönlicher KI-Assistent, komplett im Browser umgesetzt.
 Da ich keinen eigenen Server finanzieren kann, nutze ich bewusst **kostenlose APIs direkt im Frontend**. Das ist zwar eine Herausforderung, aber auch eine funktionable Lösung.
 
 ## 🧠 Funktionen im Überblick
 
 ### 🔍 KI-Integration
-- **Gemini API** für Text- und Bildunterhaltungen eingabe und Text Ausgabe 
-- **Google Custom Search API** für aktuelle Web-Suchergebnisse  
-- **Langzeitgedächtnis** durch automatische Konversationszusammenfassungen  
-- **RAG-System** (Retrieval-Augmented Generation) mit eigener Wissensbasis  
+- **Gemini API** für Text- und Bildunterhaltungen (Eingabe und Text-Ausgabe)
+- **Google Custom Search API** für aktuelle Web-Suchergebnisse
+- **Langzeitgedächtnis** durch automatische Konversationszusammenfassungen
+- **RAG-System** (Retrieval-Augmented Generation) mit eigener Wissensbasis
 
 ### 👤 Nutzerorientierte Funktionen
-- Mehrere **Profile** mit persönlichen Einstellungen  
-- Auswahl zwischen **vordefinierten** oder **eigenen Bot-Persönlichkeiten**  
-- **Projekt-Chats**, jeder mit eigenem Wissen und Kontext  
-- **Sprachmodus**: erkennt gesprochene Sprache und antwortet mit Sprachausgabe  
-- **Interessen-Tracking** für individuell passende Antworten  
+- Mehrere **Profile** mit persönlichen Einstellungen
+- Auswahl zwischen **vordefinierten** oder **eigenen Bot-Persönlichkeiten**
+- **Projekt-Chats**, jeder mit eigenem Wissen und Kontext
+- **Sprachmodus**: Erkennt gesprochene Sprache und antwortet mit Sprachausgabe
+- **Interessen-Tracking** für individuell passende Antworten
 
 ### ⚙️ Technische Umsetzung
-- **IndexedDB** für lokale Datenspeicherung – kein Server nötig  
-- **Web Speech API** für Spracheingabe und -ausgabe  
-- **Responsive Design** für alle Bildschirmgrößen  
-- **Modulare Struktur** mit klar getrennten Funktionen  
+- **IndexedDB** für lokale Datenspeicherung – kein Server nötig
+- **Web Speech API** für Spracheingabe und -ausgabe
+- **Responsive Design** für alle Bildschirmgrößen
+- **Modulare Struktur** mit klar getrennten Funktionen
+- **Tailwind CSS** für modernes, wartbares Styling
+
+## 🚀 Entwicklung
+
+### Installation
+
+```bash
+npm install
+```
+
+### Development Server
+
+```bash
+npm run dev
+```
+
+### Build
+
+```bash
+npm run build
+```
+
+Die build-Ausgabe befindet sich im `dist/` Ordner.
+
+## 📁 Projektstruktur
+
+```
+Bred.AI/
+├── index.html              # Haupt-HTML-Datei
+├── styles/                 # Tailwind CSS Styles
+│   ├── index.css          # Haupt-Stylesheet mit Imports
+│   └── components/        # Modulare CSS-Komponenten
+│       ├── header.css     # Header-Stile
+│       ├── sidebar.css    # Sidebar-Stile
+│       ├── chat.css       # Chat-Stile
+│       ├── modal.css      # Modal-Stile
+│       └── notifications.css # Notification-Stile
+├── knowledge.js           # Wissensbasis und RAG-System
+├── globals.js             # Globale Variablen und Konfigurationen
+├── functions.js           # Hauptanwendungslogik
+├── service-worker.js      # PWA Service Worker
+├── manifest.json          # PWA Manifest
+├── package.json           # npm Konfiguration
+├── tailwind.config.js     # Tailwind CSS Konfiguration
+├── postcss.config.js      # PostCSS Konfiguration
+└── vite.config.js         # Vite Build-Konfiguration
+```
+
+## 🛠️ Technologien
+
+- **Frontend**: Vanilla JavaScript, HTML5, CSS3
+- **Styling**: Tailwind CSS 3.x
+- **Build**: Vite 6.x
+- **KI**: Google Gemini API, Groq, Cerebras, Nvidia NIM
+- **Speicher**: IndexedDB
+- **PWA**: Service Worker, Web App Manifest
+
+## 🌐 Deployment
+
+Die `dist/` Ordner kann auf jedem statischen Hosting-Dienst bereitgestellt werden:
+- GitHub Pages
+- Netlify
+- Vercel
+- Cloudflare Pages
 
 ## 🧩 Funktionsweise im Detail
 
@@ -47,34 +111,34 @@ Die KI passt ihre Antworten dynamisch an den Nutzer, das gewählte Bot-Profil, d
 ## 🛠️ Herausforderungen & Lösungen
 
 ### Kein Server
-- Verwendung von **IndexedDB** für dauerhafte Datenspeicherung  
-- Sämtliche Logik läuft komplett im **Frontend**  
-- APIs werden direkt vom Browser aus angesprochen  
+- Verwendung von **IndexedDB** für dauerhafte Datenspeicherung
+- Sämtliche Logik läuft komplett im **Frontend**
+- APIs werden direkt vom Browser aus angesprochen
 
 ### Begrenzte API-Nutzung
-- **Key-Rotation-System** für mehrere API-Schlüssel  
-- Automatisches Zurücksetzen der Tageslimits  
-- Fehlertoleranter Code, der auch bei Problemen stabil bleibt  
+- **Key-Rotation-System** für mehrere API-Schlüssel
+- Automatisches Zurücksetzen der Tageslimits
+- Fehlertoleranter Code, der auch bei Problemen stabil bleibt
 
 ### Komplexe KI-Nutzung
-- **Dynamische Prompts**, je nach Kontext und Nutzer  
-- **Gedächtnisfunktion**, die Inhalte über längere Zeit berücksichtigt  
-- Verarbeitet sowohl Text als auch Bilder  
+- **Dynamische Prompts**, je nach Kontext und Nutzer
+- **Gedächtnisfunktion**, die Inhalte über längere Zeit berücksichtigt
+- Verarbeitet sowohl Text als auch Bilder
 
 ## 🌱 Ethik & Verantwortung
 
-Da ich mich viel mit KI-Ethik beschäftige, habe ich besonders auf folgende Punkte geachtet:  
-- **Transparenz**: Der Nutzer sieht jederzeit, welches Modell aktiv ist  
-- **Datensparsamkeit**: Nur unbedingt nötige Informationen werden gespeichert  
-- **Nutzerkontrolle**: Daten und Profile lassen sich jederzeit löschen  
-- **Offene Kommunikation**: Technische Grenzen sind bewusst sichtbar und erklärt  
+Da ich mich viel mit KI-Ethik beschäftige, habe ich besonders auf folgende Punkte geachtet:
+- **Transparenz**: Der Nutzer sieht jederzeit, welches Modell aktiv ist
+- **Datensparsamkeit**: Nur unbedingt nötige Informationen werden gespeichert
+- **Nutzerkontrolle**: Daten und Profile lassen sich jederzeit löschen
+- **Offene Kommunikation**: Technische Grenzen sind bewusst sichtbar und erklärt
 
 ## 💬 Persönliches Fazit
 
-Dieses Projekt ist das Ergebnis von zwei Jahren Lernen, Experimentieren und Weiterentwickeln.  
-Ich habe insgesamt **3 Monate** daran gearbeitet und bin echt stolz auf das Resultat – aber da geht noch mehr!  
-Wenn mir neue Ideen kommen, baue ich sie definitiv ein.  
+Dieses Projekt ist das Ergebnis von zwei Jahren Lernen, Experimentieren und Weiterentwickeln.
+Ich habe insgesamt **3 Monate** daran gearbeitet und bin echt stolz auf das Resultat – aber da geht noch mehr!
+Wenn mir neue Ideen kommen, baue ich sie definitiv ein.
 
-Jede Funktion wurde mit Kreativität, Neugier und Motivation entwickelt.  
-Nicht mit teurem Server, sondern mit **Kreativität und Spaß**.  
+Jede Funktion wurde mit Kreativität, Neugier und Motivation entwickelt.
+Nicht mit teurem Server, sondern mit **Kreativität und Spaß**.
 Ich hoffe, dass dir **BredAI** genauso viel bringt wie mir beim Bauen! 💚
